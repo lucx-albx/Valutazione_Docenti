@@ -4,8 +4,10 @@
 //!npm install crypto
 const express = require('express');
 const fs = require('fs');
-const crypto = require('crypto')
+// const crypto = require('crypto')
 
+const URL_CREDENZIALI = "https://raw.githubusercontent.com/1Lg20/ValutazioneDocenti/main/Credenziali.json"
+let loggato = false
 const PORT = 3001;
 const app = express();
 const PDB = './dataBase.json'
@@ -19,28 +21,28 @@ app.use(express.urlencoded({
 }))
 
 //Funzione che serve per crittografare con l'algoritmo sha-256
-function criptaPassword(psw){
-	return new Promise((resolve, reject) => {
-		const password = psw
-		const data = Buffer.from(password)
-		const hash = crypto.createHash('sha256')	
+// function criptaPassword(psw){
+// 	return new Promise((resolve, reject) => {
+// 		const password = psw
+// 		const data = Buffer.from(password)
+// 		const hash = crypto.createHash('sha256')	
 		
-		hash.on('error', (error) => {
-			reject(error)
-		})
+// 		hash.on('error', (error) => {
+// 			reject(error)
+// 		})
 
-		hash.on('readable', () => {
-			const hashData = hash.read()
-			if (hashData) {
-				const hashHex = hashData.toString('hex')
-				resolve(hashHex)
-			}
-		})
+// 		hash.on('readable', () => {
+// 			const hashData = hash.read()
+// 			if (hashData) {
+// 				const hashHex = hashData.toString('hex')
+// 				resolve(hashHex)
+// 			}
+// 		})
 
-		hash.write(data)
-		hash.end()
-	})
-}
+// 		hash.write(data)
+// 		hash.end()
+// 	})
+// }
 
 //Funzione per l'inserimento di un voto di un docente
 const inserisci_nuovo_voto =(main_db, dati, voto)=>{
@@ -76,24 +78,13 @@ const imposta_id =(db)=>{
 
 //Ipotetica home page
 app.get('/', (req, res) => {
-    const home = `
-        <html>
-            <head>
-                <title>Home</title>
-            </head>
-            <body>
-                <h1>Valutazione Docenti</h1>
-                <ul>
-                    <li><a href="/login">Pagina di Login</a></li>
-                    <li><a href="/getDocenti">Pagina Docenti</a></li>
-                    <li><a href="/vota">Inserisci Voto</a></li>
-                    <li><a href="/getMedia">Calcola Media</a></li>
-                </ul>
-            </body>
-        </html>
-    `;
-    
-    res.send(home);
+    if(loggato == true){
+        // res.send(home);
+        let home = fs.readFileSync('./index.html')
+        res.end(home)
+    } else {
+        res.end("Recarsi alla pagina login per visualizzare la pagina.")
+    }
 });
 
 
@@ -101,9 +92,24 @@ app.get('/', (req, res) => {
 app.post('/login', (req, res) => {
     let nome_utente = req.body.nm_ut
     let password = req.body.psw
+    let credenziali_corrette = false
 
-    // TODO
-    res.end("sei al login")
+    fetch(URL_CREDENZIALI)
+    .then((testo)=>testo.json())
+    .then((data)=>{
+        data.map((elem, i)=>{
+            if(elem.username == nome_utente && elem.password == password){
+                credenziali_corrette = true
+                loggato = true
+            }
+        })
+
+        if(credenziali_corrette == true){
+            res.redirect('http://localhost:3001/')
+        }
+    })
+
+    // res.end("sei al login")
 })
 
 //Con la get docenti puoi prendere le informazioni del docente che si vuole
@@ -136,13 +142,13 @@ app.get('/getDocenti', (req, res) => {
     }
 })
 
-//con la vota puoi votare il docente che vuoi
-app.get('/vota', (req, res) => {
-    let cgd = req.body.cog_dc || 'Giordano'
-    let mt = req.body.nm_mat || 'TPSIT'
-    let vt = req.body.voto || 10
-    let des = req.body.desc || '*'
-    let cls = req.body.cls || '5L'
+//con la valutaDocente puoi votare il docente che vuoi
+app.post('/valutaDocente', (req, res) => {
+    let cgd = req.body.cog_dc
+    let mt = req.body.nm_mat
+    let vt = req.body.voto
+    let des = req.body.desc
+    let cls = req.body.cls
 
     let info_da_inserire = {
         'nome': cgd,
@@ -153,6 +159,8 @@ app.get('/vota', (req, res) => {
         'voto': [ vt ]
     }
 
+    console.log('Ecco: ' + info_da_inserire)
+
     inserisci_nuovo_voto(DB, info_da_inserire, vt)
 
     res.end("sei alla pagina per l'inserimento dei voti di un docente")
@@ -160,7 +168,7 @@ app.get('/vota', (req, res) => {
 
 //Con la get media puoi ottenere la media dei voti del docente che vuoi
 app.get('/getMedia', (req, res) => {
-    let cognome_docente = req.body.cog_dc || 'Giordano'
+    let cognome_docente = req.query.cog_dc
     // let materia_docente = req.body.nm_mat
     // let classe = req.body.cls
     let somma_voti = 0
@@ -169,13 +177,13 @@ app.get('/getMedia', (req, res) => {
 
     if(DB[0] != undefined){
         DB.map((elem, i)=>{
-            if( elem.nome.toLowerCase() === nome.toLowerCase() // && 
+            if( elem.nome.toLowerCase() === cognome_docente.toLowerCase() // && 
                 // elem.materia.toLowerCase() === materia_docente.toLowerCase() && 
                 // elem.classe.toLowerCase() === classe.toLowerCase()
                 ){
 
                 elem.voto.map((info, x)=>{
-                    somma_voti += info
+                    somma_voti += parseInt(info)
                 })
 
                 n_voti = elem.voto.length
@@ -183,6 +191,8 @@ app.get('/getMedia', (req, res) => {
         })
 
         media_docente = somma_voti / n_voti
+
+        console.log(somma_voti)
 
         res.status(200).json(
             { 
@@ -198,6 +208,11 @@ app.get('/getMedia', (req, res) => {
             }
         )
     }
+})
+
+//con la viewDocente puoi visualizzare le info sul singolo docente
+app.get('/viewDocente', (req, res) => {
+    res.end("sei alla pagina per visualizzare il singolo docente")
 })
 
 app.listen(PORT, () => {
