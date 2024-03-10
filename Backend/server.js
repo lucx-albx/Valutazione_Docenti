@@ -10,10 +10,16 @@ const URL_CREDENZIALI = "https://raw.githubusercontent.com/1Lg20/ValutazioneDoce
 let loggato = false
 const PORT = 3001;
 const app = express();
-const PDB = './dataBase.json'
+const PDB = './Json/dataBase.json'
+const Tutti_Prof = './Json/ProfJSON.json'
+
+//File json letti dal file system
 let DB = JSON.parse(
-        fs.readFileSync(PDB)
-    )
+    fs.readFileSync(PDB)
+)
+let Dati_tutti_prof = JSON.parse(
+    fs.readFileSync(Tutti_Prof)
+)
 
 app.use(express.json());
 app.use(express.urlencoded({
@@ -44,37 +50,12 @@ app.use(express.urlencoded({
 // 	})
 // }
 
-//Funzione per l'inserimento di un voto di un docente
-const inserisci_nuovo_voto =(main_db, dati, voto)=>{
-    let db_tmp = main_db
-    let docente_presente = false
-
-    db_tmp.map((elem, i)=>{
-        if( elem.nome.toLowerCase() === dati.nome.toLowerCase() && 
-            elem.materia.toLowerCase() === dati.materia.toLowerCase() && 
-            elem.classe.toLowerCase() === dati.classe.toLowerCase()){
-
-            docente_presente = true
-            elem.voto.push(voto)
-            elem.id = i
-        } 
-    })
-
-    if(docente_presente === false){
-        db_tmp.push(dati)
-        imposta_id(db_tmp)
-    }
-
-    fs.writeFileSync(PDB, JSON.stringify(db_tmp, null, 2), 'utf-8');
-}
-
 //Imposta automaticamente gli id dei docenti
-const imposta_id =(db)=>{
-    console.log('ecco: ' + db)
-    db.map((elem, i)=>{
-        elem.id = i
-    })
-}
+// const imposta_id =(db)=>{
+//     db.map((elem, i)=>{
+//         elem.id = i
+//     })
+// }
 
 //Ipotetica home page
 app.get('/', (req, res) => {
@@ -114,54 +95,126 @@ app.post('/login', (req, res) => {
 
 //Con la get docenti puoi prendere le informazioni del docente che si vuole
 app.get('/getDocenti', (req, res) => {
-    // let cognome_docente = req.body.cog_dc
-    // let materia_docente = req.body.nm_mat
-    let classe = req.body.cls || '5L'
+    let docente_nel_plesso_trovato = false
+    let classe = req.query.cls || "3L"
+    let plesso = req.query.pls || "Rivoira"
     let docente = []
+    let materie_doc = []
+    let riferimento_classe_per_json = "Classe" + classe.toUpperCase()
 
-    if(DB[0] != undefined){
-        DB.map((elem, i)=>{
-            if( elem.classe.toLowerCase() === classe.toLowerCase()){
-                docente.push(elem.nome)
+    if(Dati_tutti_prof[0] != undefined){
+        Dati_tutti_prof.map((elem, i)=>{
+            //Controllo plesso
+            elem.istituto.map((ist, i)=>{
+                if(ist.toLowerCase() === plesso.toLowerCase()){
+                    docente_nel_plesso_trovato = true
+                }
+            })
+
+            //Inserisco materie che insegna quel docente in quella classe
+            //!da sistemare
+            elem.materie.riferimento_classe_per_json.map((mat, i)=>{
+                materie_doc.push(mat)
+            })
+
+            if(docente_nel_plesso_trovato === true){
+                docente.push(
+                    {
+                        nome: elem.nome,
+                        cognome: elem.cognome,
+                        materie: materie_doc
+                    }
+                )
+
+                res.status(200).json(
+                    { 
+                        docente: docente,
+                        messaggio: "I dati del docente sono stati estratti con successo!"
+                    }
+                )
+            } else {
+                res.status(400).json(
+                    { 
+                        docente: docente,
+                        messaggio: "Docente non trovato!"
+                    }
+                )
             }
         })
-
-        res.status(200).json(
-            { 
-                docente: docente,
-                messaggio: "I dati del docente sono stati estratti con successo!"
-            }
-        )
     } else {
         res.status(400).json(
             { 
                 docente: docente,
-                messaggio: "Mi spiace ma al momento questo docente non è stato registrato. Votalo per registrarlo"
+                messaggio: "Mi spiace ma al momento questo docente non è presente."
             }
         )
     }
 })
 
-//con la valutaDocente puoi votare il docente che vuoi
-app.post('/valutaDocente', (req, res) => {
-    let cgd = req.body.cog_dc
-    let mt = req.body.nm_mat
-    let vt = req.body.voto
-    let des = req.body.desc
-    let cls = req.body.cls
+//Funzione per l'inserimento di un voto di un docente
+const inserisci_nuovo_voto =(main_db, dati, voto)=>{
+    let db_tmp = main_db
+    let nome_docente =  dati.nomedocente.toLowerCase()
+    let cognome_docente = dati.cognomedocente.toLowerCase()
+    let materia_docente = dati.materie[0].nomemateria
+    let id_domanda = dati.materie[0].valutazioni.domanda
+    let voto_docente = dati.materie[0].valutazioni.voto
+    let classe_alunno = dati.materie[0].valutazioni.classealunno
+    let docente_presente = false
 
-    let info_da_inserire = {
-        'nome': cgd,
-        'classe': cls,
-        'materia': mt,
-        'id': null,
-        'descrizione': des,
-        'voto': [ vt ]
+    db_tmp.map((elem, i)=>{
+        if( elem.cognomedocente.toLowerCase() === cognome_docente &&
+            elem.nomedocente.toLowerCase() === nome_docente
+        ){
+            docente_presente = true
+            
+            elem.materie.map((mat, i)=>{
+                if(mat.nomemateria === materia_docente){
+                    mat.valutazioni.map((info, i)=>{
+                        info.classealunno = classe_alunno
+                        info.domanda = id_domanda
+                        info.voto = voto_docente
+                    })
+                }
+            })
+        } 
+    })
+
+    if(docente_presente === false){
+        db_tmp.push(dati)
+        // imposta_id(db_tmp)
     }
 
-    console.log('Ecco: ' + info_da_inserire)
+    fs.writeFileSync(PDB, JSON.stringify(db_tmp, null, 2), 'utf-8');
+}
 
-    inserisci_nuovo_voto(DB, info_da_inserire, vt)
+//con la valutaDocente puoi votare il docente che vuoi
+app.post('/valutaDocente', (req, res) => {
+    let cog_doc = req.body.cog_dc
+    let nom_doc = req.body.nom_dc
+    let mat = req.body.nm_mat
+    let voto = req.body.voto
+    let id_dom = req.body.desc
+    let classe = req.body.cls
+
+    let info_da_inserire = {
+        "cognomedocente": cog_doc,
+        "nomedocente": nom_doc,
+        "materie": [
+            {
+                "nomemateria": mat,
+                "valutazioni" : [
+                    {
+                        "classealunno": classe,
+                        "domanda": id_dom,
+                        "voto": voto
+                    }
+                ]
+            }
+        ]
+    }
+
+    inserisci_nuovo_voto(DB, info_da_inserire, voto)
 
     res.end("sei alla pagina per l'inserimento dei voti di un docente")
 })

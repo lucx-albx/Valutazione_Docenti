@@ -1,0 +1,19 @@
+[
+	{
+		"cognomedocente": "Migliore",
+		"nomedocente": "Giovanna",
+		"materie": [
+			{
+				"nomemateria": "Storia",
+				"valutazioni" : [
+					{	
+						"classealunno": "5L",
+						"domanda": "001",
+						"voto": 7
+					}
+				]
+			}
+
+		]
+	}
+]

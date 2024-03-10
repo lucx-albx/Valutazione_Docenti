@@ -1,0 +1,120 @@
+[
+	{
+		"nome":"Manuela",
+		"cognome":"Dalbesio",
+		"classi": ["3L", "4L", "5L"],
+		"materie":{
+			"Classe3L":["Sistemi e Reti", "Informatica"],
+			"Classe4L":["Sistemi e Reti", "Informatica"],
+			"Classe5L":["Sistemi e Reti", "Informatica", "Gestione Progetto"]
+		},
+		"istituto":["Rivoira"]
+	},
+	{
+		"nome":"Pierangelo Verga",
+		"materie":{
+			"Classe2L":["STA"],
+			"Classe3L":["Sistemi e Reti"],
+			"Classe4L":["Sistemi e Reti"],
+			"Classe5L":["Sistemi e Reti", "Gestione Progetto"]
+		},
+		"istituto":["Rivoira"]
+	},
+	{
+		"nome":"Flaviano",
+		"cognome":"Monge",
+		"materie":{
+			"Classe3L":["Informatica"],
+			"Classe4L":["Informatica"],
+			"Classe5L":["Informatica"]
+		},
+		"istituto":["Rivoira"]
+	},
+	{
+		"nome":"Monica Rosso",
+		"materie":{
+			"Classe1X":["Inglese"],
+			"Classe4L":["Inglese"],
+			"Classe5F":["Inglese"]
+		},
+		"istituto":["Rivoira"]
+	},
+	{
+		"nome":"Carlotta",
+		"cognome":"Rosso",
+		"materie":{
+			"Classe4L":["Educazione Fisica"]
+		},
+		"istituto":["Rivoira"]
+	},
+	{
+		"nome":"Giovanna",
+		"cognome":"Migliore",
+		"materie":{
+			"Classe4L":["Lingua e Letteratura italiana", "Storia"],
+			"Classe5L":["Lingua e Letteratura italiana", "Storia"]
+		},
+		"istituto":["Rivoira"]
+	},
+	{
+		"nome":"Raffaella Cometto",
+		"materie":{
+			"Classe2L":["Matematica"],
+			"Classe4L":["Matematica"]
+		},
+		"istituto":["Rivoira"]
+	},
+	{
+		"nome":"Nazareno",
+		"cognome":"Muratore",
+		"materie":{
+			"Classe4L":["Telecomunicazioni"]
+		},
+		"istituto":["Rivoira"]
+	},
+	{
+		"nome":"Patrick",
+		"cognome":"Gourdain",
+		"materie":{
+			"Classe4L":["Telecomunicazioni"]
+		},
+		"istituto":["Rivoira"]
+	},
+	{
+		"nome":"Enrico",
+		"cognome":"Allione",
+		"materie":{
+			"Classe1L":["Informatica"],
+			"Classe4L":["Tecnologie e Progettazioni di Sistemi Informatici e di Telecomunicazione"],
+			"Classe5L":["Tecnologie e Progettazioni di Sistemi Informatici e di Telecomunicazione"]
+		},
+		"istituto":["Rivoira"]
+	},
+	{
+		"nome":"Andrea",
+		"cognome":"Giordano",
+		"materie":{
+			"Classe1L":["Informatica"],
+			"Classe4A":["Informatica"],
+			"Classe4L":["Tecnologie e Progettazioni di Sistemi Informatici e di Telecomunicazione"],
+			"Classe5L":["Tecnologie e Progettazioni di Sistemi Informatici e di Telecomunicazione"]
+		},
+		"istituto":["Denina","Rivoira"]
+	},
+	{
+		"nome":"Sara",
+		"cognome":"Obertino",
+		"materie":{
+			"Classe4L":["Insegnamento Religione Cattolica"]
+		},
+		"istituto":["Rivoira"]
+	},
+	{
+		"nome":"Rossella",
+		"cognome":"Rossaro",
+		"materie":{
+			"Classe4L":["Educazione Civica"]
+		},
+		"istituto":["Rivoira"]
+	}
+]
