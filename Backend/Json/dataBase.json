@@ -1,19 +1,34 @@
 [
-	{
-		"cognomedocente": "Migliore",
-		"nomedocente": "Giovanna",
-		"materie": [
-			{
-				"nomemateria": "Storia",
-				"valutazioni" : [
-					{	
-						"classealunno": "5L",
-						"domanda": "001",
-						"voto": 7
-					}
-				]
-			}
-
-		]
-	}
+  {
+    "cognomedocente": "Giordano",
+    "nomedocente": "Andrea",
+    "materie": [
+      {
+        "nomemateria": "TPSIT",
+        "valutazioni": [
+          {
+            "classealunno": "5L",
+            "domanda": "004",
+            "voto": "8"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "cognomedocente": "Allione",
+    "nomedocente": "Enrico",
+    "materie": [
+      {
+        "nomemateria": "TPSIT",
+        "valutazioni": [
+          {
+            "classealunno": "4L",
+            "domanda": "002",
+            "voto": "8"
+          }
+        ]
+      }
+    ]
+  }
 ]

@@ -1,16 +1,15 @@
 //!Moduli da installare:
 //!npm install express
 //!npm install fs
-//!npm install crypto
 const express = require('express');
 const fs = require('fs');
-// const crypto = require('crypto')
 
 const URL_CREDENZIALI = "https://raw.githubusercontent.com/1Lg20/ValutazioneDocenti/main/Credenziali.json"
 let loggato = false
 const PORT = 3001;
 const app = express();
 const PDB = './Json/dataBase.json'
+const PDM = './Json/domandeProf.json'
 const Tutti_Prof = './Json/ProfJSON.json'
 
 //File json letti dal file system
@@ -20,42 +19,14 @@ let DB = JSON.parse(
 let Dati_tutti_prof = JSON.parse(
     fs.readFileSync(Tutti_Prof)
 )
+let DB_DOM = JSON.parse(
+    fs.readFileSync(PDM)
+)
 
 app.use(express.json());
 app.use(express.urlencoded({
     extended: true
 }))
-
-//Funzione che serve per crittografare con l'algoritmo sha-256
-// function criptaPassword(psw){
-// 	return new Promise((resolve, reject) => {
-// 		const password = psw
-// 		const data = Buffer.from(password)
-// 		const hash = crypto.createHash('sha256')	
-		
-// 		hash.on('error', (error) => {
-// 			reject(error)
-// 		})
-
-// 		hash.on('readable', () => {
-// 			const hashData = hash.read()
-// 			if (hashData) {
-// 				const hashHex = hashData.toString('hex')
-// 				resolve(hashHex)
-// 			}
-// 		})
-
-// 		hash.write(data)
-// 		hash.end()
-// 	})
-// }
-
-//Imposta automaticamente gli id dei docenti
-// const imposta_id =(db)=>{
-//     db.map((elem, i)=>{
-//         elem.id = i
-//     })
-// }
 
 //Ipotetica home page
 app.get('/', (req, res) => {
@@ -95,94 +66,95 @@ app.post('/login', (req, res) => {
 
 //Con la get docenti puoi prendere le informazioni del docente che si vuole
 app.get('/getDocenti', (req, res) => {
-    let docente_nel_plesso_trovato = false
-    let classe = req.query.cls || "3L"
-    let plesso = req.query.pls || "Rivoira"
+    let classe = req.query.cls.toUpperCase()
+    let plesso = req.query.pls.toUpperCase()
     let docente = []
-    let materie_doc = []
-    let riferimento_classe_per_json = "Classe" + classe.toUpperCase()
+    let indice_materie = null
 
     if(Dati_tutti_prof[0] != undefined){
         Dati_tutti_prof.map((elem, i)=>{
-            //Controllo plesso
-            elem.istituto.map((ist, i)=>{
-                if(ist.toLowerCase() === plesso.toLowerCase()){
-                    docente_nel_plesso_trovato = true
-                }
-            })
+            if(elem.istituto.includes(plesso) === true && elem.classi.indexOf(classe) !== -1){
+                indice_materie = elem.classi.indexOf(classe)
 
-            //Inserisco materie che insegna quel docente in quella classe
-            //!da sistemare
-            elem.materie.riferimento_classe_per_json.map((mat, i)=>{
-                materie_doc.push(mat)
-            })
-
-            if(docente_nel_plesso_trovato === true){
                 docente.push(
                     {
                         nome: elem.nome,
                         cognome: elem.cognome,
-                        materie: materie_doc
-                    }
-                )
-
-                res.status(200).json(
-                    { 
-                        docente: docente,
-                        messaggio: "I dati del docente sono stati estratti con successo!"
-                    }
-                )
-            } else {
-                res.status(400).json(
-                    { 
-                        docente: docente,
-                        messaggio: "Docente non trovato!"
+                        materie: elem.materie[indice_materie]
                     }
                 )
             }
         })
+
+        res.status(200).json(
+            { 
+                docente: docente,
+                messaggio: "I dati del docente sono stati estratti con successo!"
+            }
+        )
     } else {
         res.status(400).json(
             { 
                 docente: docente,
-                messaggio: "Mi spiace ma al momento questo docente non è presente."
+                messaggio: "Mi spiace ma al momento non è presente alcun docente."
             }
         )
     }
 })
 
 //Funzione per l'inserimento di un voto di un docente
-const inserisci_nuovo_voto =(main_db, dati, voto)=>{
+const inserisci_nuovo_voto =(main_db, dati)=>{
     let db_tmp = main_db
     let nome_docente =  dati.nomedocente.toLowerCase()
     let cognome_docente = dati.cognomedocente.toLowerCase()
     let materia_docente = dati.materie[0].nomemateria
-    let id_domanda = dati.materie[0].valutazioni.domanda
-    let voto_docente = dati.materie[0].valutazioni.voto
-    let classe_alunno = dati.materie[0].valutazioni.classealunno
+    let id_domanda = dati.materie[0].valutazioni[0].domanda
+    let voto_docente = dati.materie[0].valutazioni[0].voto
+    let classe_alunno = dati.materie[0].valutazioni[0].classealunno
     let docente_presente = false
+    let materia_docente_presente = false
 
     db_tmp.map((elem, i)=>{
-        if( elem.cognomedocente.toLowerCase() === cognome_docente &&
-            elem.nomedocente.toLowerCase() === nome_docente
+        if( elem.cognomedocente.toLowerCase() === cognome_docente.toLowerCase() &&
+            elem.nomedocente.toLowerCase() === nome_docente.toLowerCase()
         ){
             docente_presente = true
             
             elem.materie.map((mat, i)=>{
-                if(mat.nomemateria === materia_docente){
-                    mat.valutazioni.map((info, i)=>{
-                        info.classealunno = classe_alunno
-                        info.domanda = id_domanda
-                        info.voto = voto_docente
-                    })
+                if(mat.nomemateria.toLowerCase() === materia_docente.toLowerCase()){
+                    materia_docente_presente = true 
+
+                    mat.valutazioni.push(
+                        {
+                            "classealunno": classe_alunno.toUpperCase(),
+                            "domanda": id_domanda,
+                            "voto": voto_docente
+                        }
+                    )
                 }
             })
+
+            if (materia_docente_presente === false){
+                elem.materie.push(
+                    {
+                        "nomemateria": materia_docente.toUpperCase(),
+                        "valutazioni" : [
+                            {
+                                "classealunno": classe_alunno.toUpperCase(),
+                                "domanda": id_domanda,
+                                "voto": voto_docente
+                            }
+                        ]
+                    }
+                )
+
+                console.log(elem.materie)
+            }
         } 
     })
 
     if(docente_presente === false){
         db_tmp.push(dati)
-        // imposta_id(db_tmp)
     }
 
     fs.writeFileSync(PDB, JSON.stringify(db_tmp, null, 2), 'utf-8');
@@ -202,10 +174,10 @@ app.post('/valutaDocente', (req, res) => {
         "nomedocente": nom_doc,
         "materie": [
             {
-                "nomemateria": mat,
+                "nomemateria": mat.toUpperCase(),
                 "valutazioni" : [
                     {
-                        "classealunno": classe,
+                        "classealunno": classe.toUpperCase(),
                         "domanda": id_dom,
                         "voto": voto
                     }
@@ -214,38 +186,49 @@ app.post('/valutaDocente', (req, res) => {
         ]
     }
 
-    inserisci_nuovo_voto(DB, info_da_inserire, voto)
+    inserisci_nuovo_voto(DB, info_da_inserire)
 
     res.end("sei alla pagina per l'inserimento dei voti di un docente")
+})
+
+//Con la getDomande ottieni tutte le domanda da fare al momento della valutazione del singolo docente
+app.get('/getDomande', (req, res) => {
+    res.status(200).json(
+        { 
+            domande: DB_DOM,
+            messaggio: 'Domande estratte!'
+        }
+    )
 })
 
 //Con la get media puoi ottenere la media dei voti del docente che vuoi
 app.get('/getMedia', (req, res) => {
     let cognome_docente = req.query.cog_dc
-    // let materia_docente = req.body.nm_mat
-    // let classe = req.body.cls
+    let nome_docente = req.query.nom_dc
+    let materia_docente = req.query.nm_mat
     let somma_voti = 0
     let n_voti = 0
     let media_docente = 0
 
     if(DB[0] != undefined){
         DB.map((elem, i)=>{
-            if( elem.nome.toLowerCase() === cognome_docente.toLowerCase() // && 
-                // elem.materia.toLowerCase() === materia_docente.toLowerCase() && 
-                // elem.classe.toLowerCase() === classe.toLowerCase()
-                ){
+            if( elem.cognomedocente.toLowerCase() === cognome_docente.toLowerCase() && 
+                elem.nomedocente.toLowerCase() === nome_docente.toLowerCase()
+            ){
 
-                elem.voto.map((info, x)=>{
-                    somma_voti += parseInt(info)
+                elem.materie.map((mat, x)=>{
+                    if(mat.nomemateria.toLowerCase() === materia_docente.toLowerCase()){
+                        n_voti = mat.valutazioni.length
+
+                        mat.valutazioni.map((vt, y)=>{
+                            somma_voti += parseInt(vt.voto)
+                        })
+                    }
                 })
-
-                n_voti = elem.voto.length
             }  
         })
 
         media_docente = somma_voti / n_voti
-
-        console.log(somma_voti)
 
         res.status(200).json(
             { 
@@ -263,7 +246,7 @@ app.get('/getMedia', (req, res) => {
     }
 })
 
-//con la viewDocente puoi visualizzare le info sul singolo docente
+//con la viewDocente puoi visualizzare le info sui docenti
 app.get('/viewDocente', (req, res) => {
     res.end("sei alla pagina per visualizzare il singolo docente")
 })
