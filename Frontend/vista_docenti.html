@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inserisci voto</title>
+</head>
+<body>
+    <center>
+        <h1>Valuta Docente</h1>
+
+        <form action="http://localhost:3001/valutaDocente" method="POST">
+            <input type="text" name="cog_dc" id="" placeholder="Inserisci cognome docente..."> <br>
+            <input type="text" name="nom_dc" id="" placeholder="Inserisci nome docente..."> <br>
+            <input type="text" name="nm_mat" id="" placeholder="Inserisci nome materia..."> <br>
+            <input type="number" name="voto" id="" placeholder="Inserisci voto docente..."> <br>
+            <input type="text" name="desc" id="" placeholder="Inserisci id domanda..."> <br>
+            <input type="text" name="cls" id="" placeholder="Inserisci la tua classe..."> <br>
+        
+            <input type="submit" value="Vota">
+        </form>
+
+        <h1>Media Docente</h1>
+
+        <form action="http://localhost:3001/getMedia" method="GET">
+            <input type="text" name="cog_dc" id="" placeholder="Inserisci cognome docente..."> <br>
+            <input type="text" name="nom_dc" id="" placeholder="Inserisci nome docente..."> <br>
+            <input type="text" name="nm_mat" id="" placeholder="Inserisci materia docente..."> <br>
+        
+            <input type="submit" value="Ottieni media">
+        </form>
+        
+        <br>
+
+        <form action="http://localhost:3001/getDomande" method="GET">
+            <input type="submit" value="Ottieni domande">
+        </form>
+
+        <br>
+
+        <form action="http://localhost:3001/getDocenti" method="GET">
+            <input type="text" name="pls" id="" placeholder="Inserisci il plesso..."> <br>
+            <input type="text" name="cls" id="" placeholder="Inserisci la tua classe..."> <br>
+
+            <input type="submit" value="Ottieni docenti">
+        </form>
+        
+        <br>
+
+        <button onclick="logout()">logout</button>
+
+    </center>
+
+    <script src="./script/vista_docenti.js"></script>
+</body>
+</html>

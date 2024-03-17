@@ -1,18 +1,21 @@
 //!Moduli da installare:
 //!npm install express
 //!npm install fs
+//!npm install cors
 const express = require('express');
 const fs = require('fs');
+const cors = require("cors")
 
 const URL_CREDENZIALI = "https://raw.githubusercontent.com/1Lg20/ValutazioneDocenti/main/Credenziali.json"
 let loggato = false
+let classe_alunno_loggato = false
 const PORT = 3001;
 const app = express();
 const PDB = './Json/dataBase.json'
 const PDM = './Json/domandeProf.json'
 const Tutti_Prof = './Json/ProfJSON.json'
 
-//File json letti dal file system
+//File json letti da file system
 let DB = JSON.parse(
     fs.readFileSync(PDB)
 )
@@ -28,6 +31,9 @@ app.use(express.urlencoded({
     extended: true
 }))
 
+app.use(cors())
+app.options('*', cors())
+
 //Ipotetica home page
 app.get('/', (req, res) => {
     if(loggato == true){
@@ -39,6 +45,12 @@ app.get('/', (req, res) => {
     }
 });
 
+//Restituisco quelle variabili che al caricamento della pagina vanno perdute
+app.get('/variabili_onload', (req, res) => {
+    res.json({
+        credenziali_res: loggato
+    })
+});
 
 //Accesso alla piattaforma
 app.post('/login', (req, res) => {
@@ -53,16 +65,42 @@ app.post('/login', (req, res) => {
             if(elem.username == nome_utente && elem.password == password){
                 credenziali_corrette = true
                 loggato = true
+                classe_alunno_loggato = elem.username.slice(-2)
             }
         })
 
         if(credenziali_corrette == true){
-            res.redirect('http://localhost:3001/')
+            res.status(200).json(
+                {
+                    credenziali_res: true,
+                    message: 'Benvenuto su valutazione docenti ' + nome_utente + '!'
+                }
+            )
+
+            // Vecchio metodo
+            // res.redirect('http://localhost:3001/')
+        } else {
+            res.status(200).json(
+                {
+                    credenziali_res: false,
+                    message: 'Credenziali non valide oppure non corrette'
+                }
+            )
         }
     })
 
     // res.end("sei al login")
 })
+
+//Logout dell'account
+app.get('/logout', (req, res) => {
+    loggato = false
+    
+    res.json({
+        credenziali_res: loggato,
+        message: "Sloggato dall'account con successo"
+    })
+});
 
 //Con la get docenti puoi prendere le informazioni del docente che si vuole
 app.get('/getDocenti', (req, res) => {
