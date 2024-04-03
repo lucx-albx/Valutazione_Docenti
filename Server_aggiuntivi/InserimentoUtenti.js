@@ -5,7 +5,7 @@ const client = new MongoClient("mongodb://localhost:27017");
 
 http.createServer((req, res) => {
     connessione();
-    const miaCollection = client.db("ValutazioneDocenti").collection("Utenti");
+    const miaCollection = client.db("valutazioneDocenti").collection("utenti");
     
     miaCollection.insertMany([{email: 'alba.lucafrancesco@denina.it', password: 'alba.lucafrancesco', classe: '5L'}, 
                               {email: 'audisio.nicolo@denina.it', password: 'audisio.nicolo', classe: '5L'},
@@ -51,7 +51,8 @@ http.createServer((req, res) => {
                               {email: 'volpe.giovanni@denina.it', password: 'volpe.giovanni', classe: '4L'},
                               {email: 'zhou.chenghuan@denina.it', password: 'zhou.chenghuan', classe: '5L'}]);
 
-}).listen(3000)
+    res.end("caricato")
+}).listen(3001)
 
 const connessione = async() => {
     await client.connect();
