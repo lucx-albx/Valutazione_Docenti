@@ -5,7 +5,7 @@ const client = new MongoClient("mongodb://localhost:27017");
 
 http.createServer((req,res)=>{
     connessione();
-    const collect=client.db("votidocenti").collection("prof");
+    const collect=client.db("valutazioneDocenti").collection("professori");
     collect.insertMany([
         {
             "nome":"Manuela",
