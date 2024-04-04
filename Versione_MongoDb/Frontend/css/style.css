@@ -1,0 +1,31 @@
+.carica_docenti{
+    gap: 20px;
+}
+
+.card_docente{
+    border: 2px solid black;
+
+    display: flex;
+    flex-direction: column;
+    padding: 15px;
+}
+
+.card_docente:hover{
+    cursor: pointer;
+}
+
+.card_domande{
+    border: 2px solid black;
+
+    display: flex;
+    flex-direction: column;
+    padding: 15px;
+}
+
+.card_domande:hover{
+    cursor: pointer;
+}
+
+.mt-1{
+    margin-top: 10px;
+}
