@@ -3,7 +3,7 @@
 }
 
 .card_docente{
-    border: 2px solid black;
+    border: 3px solid black;
 
     display: flex;
     flex-direction: column;
@@ -15,15 +15,11 @@
 }
 
 .card_domande{
-    border: 2px solid black;
+    border: 3px solid black;
 
     display: flex;
     flex-direction: column;
     padding: 15px;
-}
-
-.card_domande:hover{
-    cursor: pointer;
 }
 
 .mt-1{
