@@ -22,6 +22,15 @@
     padding: 15px;
 }
 
+.card_viewdocente{
+    border: 3px solid black;
+
+    display: flex;
+    flex-direction: column;
+    padding: 15px;
+    font-size: 20px;
+}
+
 .mt-1{
     margin-top: 10px;
 }

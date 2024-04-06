@@ -2,7 +2,7 @@ const LINK_SERVER = 'http://localhost:3001/'
 const API_LOADED_PAGE = LINK_SERVER + 'variabili_onload'
 const API_LOGOUT = LINK_SERVER + 'logout'
 const API_DOCENTI = LINK_SERVER + 'getDocenti'
-const API_WIEWDOCENTE = LINK_SERVER + 'viewDocente'
+const API_VIEWDOCENTE = LINK_SERVER + 'viewDocente'
 const API_ADMIN = LINK_SERVER + 'admin'
 
 const carica_docenti =()=>{
@@ -42,24 +42,37 @@ const carica_pagina_domande =(nom, cog)=>{
     window.location.href = './domande.html';
 }
 
-//TODO
-// const wiewdocente =()=>{
-//     let nome_docente = document.querySelector("#nom_doc").value
-//     let cognome_docente = document.querySelector("#cog_doc").value
-//     let token = localStorage.getItem('token')
+const card_viewdocente =(id, media, nome, cognome)=>{
+    return( 
+        `
+            <div class="card_viewdocente mt-1" onclick='carica_pagina_domande("${nome}", "${cognome}")'>
+                <p>Il docente <b>${nome}</b> <b>${cognome}</b> alla domanda <b>n${id}</b> ha come media: <b>${media}</b>
+            </div>
+        `
+    )
+}
 
-//     fetch(API_WIEWDOCENTE, {
-//         method: 'POST',
-//         headers: {
-//             'Content-Type': 'application/json'
-//         },
-//         body: JSON.stringify({nome_docente, cognome_docente, token})
-//     })
-//     .then(testo=>testo.json())
-//     .then((data)=>{
-//         alert(data.messaggio)
-//     })
-// }
+const viewdocente =()=>{
+    let nome_docente = document.querySelector("#nom_doc").value
+    let cognome_docente = document.querySelector("#cog_doc").value
+    let contenitore_viewdocente = document.querySelector(".cont_media_docente")
+
+    contenitore_viewdocente.innerHTML = ""
+
+    fetch(API_VIEWDOCENTE, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({nome_docente, cognome_docente})
+    })
+    .then(testo=>testo.json())
+    .then((data)=>{
+        data.media.map((elem)=>{
+            contenitore_viewdocente.innerHTML += card_viewdocente(elem.id, elem.media, nome_docente, cognome_docente)
+        })
+    })
+}
 
 const controlla_ruolo_utente_e_carica_interfaccia =()=>{
     let container_interface = document.querySelector(".load_interface")
@@ -97,12 +110,14 @@ const controlla_ruolo_utente_e_carica_interfaccia =()=>{
             `
                 <h1>Zona Admin</h1>
 
-                <h3>Visualizza media docente </h3>
+                <h3>Viewdocente </h3>
 
                 <input type="text" value="Manuela" placeholder="Inserisci nome docente..." id="nom_doc">
                 <input type="text" value="Dalbesio" placeholder="Inserisci cognome docente..." id="cog_doc">
 
-                <button onclick="wiewdocente()">cerca</button>
+                <button onclick="viewdocente()">cerca</button>
+
+                <br>
 
                 <div class="cont_media_docente"></div>
 

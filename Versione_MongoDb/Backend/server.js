@@ -61,6 +61,31 @@ const id_domande =(qta_dom)=>{
     return id
 }
 
+//Calcola la media per il middleware viewDocente
+const calcola_media =(voti)=>{
+    let ndom = QTADOM
+    let id_voto = voti
+    let nvoti = id_voto.length/ndom
+    let lista_id = id_domande(ndom)
+    let lista_media = []
+
+    lista_id.map((elem) => {
+        let som = 0
+        let med = 0
+
+        id_voto.map((item) => {
+            if (item.id === elem) {
+                som += item.voto
+                med = som/nvoti
+            }
+        })
+
+        lista_media.push({id: elem, media: med})
+    })
+
+    return lista_media
+}
+
 //Middleware per fare l'accesso alla piattaforma
 app.post('/login', async(req, res) => {
     let email_utente = req.body.em_ut
@@ -211,47 +236,46 @@ app.post('/valutaDocente', async(req, res) => {
     let tk = req.body.token
     let voti = req.body.voti
     let id_dom = id_domande(QTADOM)
-    let classe = ""
     let i = 0
     let valutazioni_classe = []
-
-    //Filtri
-    let filtro_docente = {
-        "cognomedocente": cog_doc,
-        "nomedocente": nom_doc
-    }
-
-    let filtro_alunno = {
-        "token": tk
-    }
-
-    //Strutture da impostare nel db
-    let struttura_iniziale = {
-        "cognomedocente": cog_doc,
-        "nomedocente": nom_doc,
-        "valutazioni" : []
-    }
-
-    for(i = 0; i < voti.length; i++){
-        valutazioni_classe.push(
-            {
-                "classealunno": classe,
-                "domanda": id_dom[i],
-                "voto": voti[i]
-            }
-        )
-    }
-
-    valutazioni_classe.map((elem, i)=>{
-        struttura_iniziale.valutazioni.push(elem);
-    })
 
     try {
         //Cerco la classe dell'alunno
         await connessione()
 
         const dati = await TABELLA_UTENTI.find({ token: tk }).toArray()
-        classe = dati[0].classe
+        let classe = dati[0].classe
+
+        //Filtri
+        let filtro_docente = {
+            "cognomedocente": cog_doc,
+            "nomedocente": nom_doc
+        }
+
+        let filtro_alunno = {
+            "token": tk
+        }
+
+        //Strutture da impostare nel db
+        let struttura_iniziale = {
+            "cognomedocente": cog_doc,
+            "nomedocente": nom_doc,
+            "valutazioni" : []
+        }
+
+        for(i = 0; i < voti.length; i++){
+            valutazioni_classe.push(
+                {
+                    "classealunno": classe,
+                    "domanda": id_dom[i],
+                    "voto": voti[i]
+                }
+            )
+        }
+
+        valutazioni_classe.map((elem, i)=>{
+            struttura_iniziale.valutazioni.push(elem);
+        })
 
         //Inserimento dati nella tabella delle valutazioni dei docenti
         await connessione()
@@ -322,75 +346,36 @@ app.get('/getDomande', async(req, res) => {
     }
 })
 
-//TODO - da cambiare tutto
-// const calcola_media =(lung, voti)=>{
-//     let lunghezza = lung
-//     let all_id = id_domande(lunghezza)
-//     let tutti_voti_suddivisi = []
-
-//     voti.map((elem, i)=>{
-//         let nvolte = 0
-//         let somma = 0
-//         let med = 0
-
-//         for(let y = 0; y < lunghezza; y++){
-//             console.log(voti[y].id + " " + all_id[i])
-//             if(voti[y].id === all_id[i]){
-//                 nvolte ++
-//                 somma += voti[y].voto
-
-//                 console.log(nvolte)
-
-//                 if(y === (lunghezza-1)){
-//                     med = somma/nvolte
-//                     tutti_voti_suddivisi.push({id: all_id[i], media: med})
-//                 }
-//             }
-//         }
-
-        
-//     })
-
-//     console.log(tutti_voti_suddivisi)
-
-//     return tutti_voti_suddivisi
-// }
-
 //con la viewDocente puoi visualizzare le info sui docenti
 app.post('/viewDocente', async(req, res) => {
     let nome = req.body.nome_docente
     let cognome = req.body.cognome_docente
     let voti_dom = []
-    let media_voti = []
 
-    //TODO - da cambiare tutto
-    // connessione()
+    try{
+        await connessione()
 
-    // TABELLA_VOTI_DOCENTI.find({cognomedocente: cognome, nomedocente: nome}).toArray()
-    // .then((dati) => {
-    //     dati[0].valutazioni.map((elem)=>{
-    //         voti_dom.push({id:elem.domanda, voto:elem.voto})
-    //     })
+        const dati_docenti = await TABELLA_VOTI_DOCENTI.find({cognomedocente: cognome, nomedocente: nome}).toArray()
 
-    //     media_voti = calcola_media(QTADOM, voti_dom)
+        console.log(dati_docenti[0].valutazioni)
+        
+        dati_docenti[0].valutazioni.map((elem)=>{
+            voti_dom.push({id:elem.domanda, voto:elem.voto})
+        })
 
-    //     media_voti.map((elem)=>{
-    //         console.log(elem)
-    //     })
-    // })
-    // .then(() => {
-    //     res.status(200).json({
-    //         messaggio: "Docente trovato!"
-    //     })
-    // })
-    // .catch((err) => {
-    //     res.status(500).json({
-    //         errore: "Si è verificato un errore durante l'inserimento dei dati."
-    //     })
-    // })
-    // .finally(() => {
-    //     client.close()
-    // })
+        let media_voti = calcola_media(voti_dom)
+
+        res.status(500).json({
+            media: media_voti,
+            messaggio: "Media docente calcolata!"
+        })
+    } catch(e){
+        res.status(500).json({
+            messaggio: "Si è verificato un errore durante l'inserimento dei dati."
+        })
+    } finally {
+        client.close()
+    }
 })
 
 app.listen(PORT, () => {
