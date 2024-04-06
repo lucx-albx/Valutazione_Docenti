@@ -30,27 +30,6 @@ const card_domanda =(domanda, num)=>{
     )
 }
 
-const id_domande =(qta_dom)=>{
-    let id = []
-    let i = 0
-
-    for(i = 0; i < qta_dom; i++){
-        if((i+1) < 10){
-            id.push('00' + (i+1))
-        }
-        
-        if((i+1) > 9 && (i+1) < 99){
-            id.push('0' + (i+1))
-        } 
-        
-        if((i+1) > 99){
-            id.push(String(i+1))
-        }
-    }
-
-    return id
-}
-
 const valutazioni =()=>{
     let input_valutazioni = document.querySelectorAll(".voto")
     let valutazioni = []
@@ -66,14 +45,14 @@ const invia_valutazione =()=>{
     let nome_docente_votato = localStorage.nome_docente
     let cognome_docente_votato = localStorage.cognome_docente
     let voti = valutazioni()
-    let domande = id_domande(voti.length)
+    let token = localStorage.getItem("token")
 
     fetch(API_VOTA_DOCENTE, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({nome_docente_votato, cognome_docente_votato, voti, domande})
+        body: JSON.stringify({nome_docente_votato, cognome_docente_votato, voti, token})
     })
     .then(testo=>testo.json())
     .then((data)=>{
@@ -83,13 +62,11 @@ const invia_valutazione =()=>{
 }
 
 const controlla_se_loggato =()=>{
-    fetch(API_LOADED_PAGE)
-    .then(testo=>testo.json())
-    .then((data)=>{
-        if(data.credenziali_res === false){
-            window.location.href = './index.html';
-        }        
-    })
+    let log = localStorage.getItem('loggato')
+
+    if(log === 'false' || log === null){
+        window.location.href = './index.html'
+    }        
 }
 
 window.addEventListener('load', 

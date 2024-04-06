@@ -16,21 +16,24 @@ const accedi =()=>{
     .then(testo=>testo.json())
     .then((data)=>{
         if(data.credenziali_res === true){
+            localStorage.setItem('token', data.tuo_token)
+            localStorage.setItem('loggato', 'true')
+
             window.location.href = './vista_docenti.html'
         } else {
-            alert(data.message)
+            alert(data.messaggio)
         }
     })
 }
 
 const controlla_se_loggato =()=>{
-    fetch(API_LOADED_PAGE)
-    .then(testo=>testo.json())
-    .then((data)=>{
-        if(data.credenziali_res === true){
-            window.location.href = './vista_docenti.html';
-        }        
-    })
+    let log = localStorage.getItem('loggato')
+
+    if(log === 'true'){
+        window.location.href = './visita_docenti.html'
+    } else {
+        localStorage.setItem("token", "null")
+    }
 }
 
 window.addEventListener('load', controlla_se_loggato)

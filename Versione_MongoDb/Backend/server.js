@@ -2,7 +2,10 @@
 //!npm install express
 //!npm install cors
 //!npm install mongodb
-const express = require('express');
+//!npm install dotenv
+require('dotenv').config()
+
+const express = require('express')
 const cors = require("cors")
 const { MongoClient } = require("mongodb")
 
@@ -15,13 +18,11 @@ const TABELLA_VOTI_DOCENTI = client.db("valutazioneDocenti").collection("votiDoc
 
 const PORT = 3001
 const app = express()
+const QTADOM = 10 //Il numero di domande che ci sono nel db
 
-let loggato = false
-let classe_alunno_loggato = undefined
-let email_alunno_loggato = ""
-let docenti_alunno_valutati = []
+let admin_email = process.env.EMAIL_ADMIN
 
-app.use(express.json());
+app.use(express.json())
 app.use(express.urlencoded({
     extended: true
 }))
@@ -33,52 +34,51 @@ app.options('*', cors())
 const connessione = async () => {
     try {
         await client.connect()
-    } catch (error) {
-        throw error
+    } catch (e) {
+        throw e
     }
 }
 
-const docenti_valutati =()=>{
-    connessione()
+//Funzione per costruire id delle domande
+const id_domande =(qta_dom)=>{
+    let id = []
+    let i = 0
 
-    docenti_alunno_valutati = []
+    for(i = 0; i < qta_dom; i++){
+        if((i+1) < 10){
+            id.push('00' + (i+1))
+        }
+        
+        if((i+1) > 9 && (i+1) < 99){
+            id.push('0' + (i+1))
+        } 
+        
+        if((i+1) > 99){
+            id.push(String(i+1))
+        }
+    }
 
-    TABELLA_UTENTI.find().toArray()
-    .then((dati)=>{
-        dati.map((elem)=>{
-            if(elem.email === email_alunno_loggato){
-                elem.docenti_valutati.map((info)=>{
-                    docenti_alunno_valutati.push(info)
-                })
-            }
-        })
-    }).finally(()=>{ client.close() })
+    return id
 }
 
-//Restituisco quelle variabili che al caricamento della pagina vanno perdute
-app.get('/variabili_onload', (req, res) => {
-    res.json({
-        credenziali_res: loggato
-    })
-});
-
-//Accesso alla piattaforma
-app.post('/login', (req, res) => {
-    connessione()
-
-    let dati_utenti = TABELLA_UTENTI.find().toArray()
-
+//Middleware per fare l'accesso alla piattaforma
+app.post('/login', async(req, res) => {
     let email_utente = req.body.em_ut
     let password = req.body.psw
     let credenziali_corrette = false
+    let tk = ''
 
-    dati_utenti.then((dati)=>{
-        dati.map((elem, i)=>{
+    try{
+        await connessione()
+        const dati_utenti = await TABELLA_UTENTI.find().toArray()
+
+        dati_utenti.map((elem, i)=>{
             if(elem.email == email_utente && elem.password == password){
                 credenziali_corrette = true
                 loggato = true
                 email_alunno_loggato = elem.email
                 classe_alunno_loggato = elem.classe
+                tk = elem.token
             }
         })
 
@@ -86,43 +86,91 @@ app.post('/login', (req, res) => {
             res.status(200).json(
                 {
                     credenziali_res: true,
-                    message: 'Benvenuto su valutazione docenti!'
+                    tuo_token: tk,
+                    messaggio: 'Benvenuto su valutazione docenti!'
                 }
             )
         } else {
             res.status(200).json(
                 {
                     credenziali_res: false,
-                    message: 'Credenziali non valide oppure non corrette'
+                    tuo_token: undefined,
+                    messaggio: 'Credenziali non valide oppure non corrette'
                 }
             )
         }
-    }).finally(()=>{ client.close() })
+    } catch(e){
+        res.status(200).json(
+            {
+                messaggio: 'Errore nel server, riprovare'
+            }
+        )
+    } finally {
+        client.close()
+    }
 })
 
-//Logout dell'account
-app.get('/logout', (req, res) => {
-    loggato = false
-    
-    res.json({
-        credenziali_res: loggato,
-        message: "Sloggato dall'account con successo"
-    })
-});
+//Middlware per controllare se l'utente è un admin
+app.post('/admin', async(req, res) => {
+    let tk = req.body.token
+    let email_utente = ""
 
-//Con la get docenti ottieni tutti i docenti che insegnano nella tua classe
-app.get('/getDocenti', (req, res) => {
-    connessione()
-    docenti_valutati()
+    try{
+        await connessione()
+        const dati_utenti = await TABELLA_UTENTI.find().toArray()
+        
+        dati_utenti.map((elem, i)=>{
+            if(elem.token === tk){
+                email_utente = elem.email
+            }
+        })
 
-    let dati_docenti = TABELLA_PROFESSORI.find().toArray()
+        if(email_utente === admin_email){
+            res.status(200).json(
+                {
+                    admin: true,
+                }
+            )
+        } else {
+            res.status(200).json(
+                {
+                    admin: false,
+                }
+            )
+        }
+    } catch(e){
+        res.status(200).json(
+            {
+                messaggio: 'Errore nel server, riprovare la connessione'
+            }
+        )
+    } finally {
+        client.close()
+    }
+})
 
-    let classe = classe_alunno_loggato
+//Middlware per ottenre tutti i docenti che insegnano nella tua classe
+app.post('/getDocenti', async(req, res) => {
+    let tk = req.body.token
+    let classe = ""
     let docente = []
+    let docenti_alunno_valutati = []
     let indice_materie = null
 
-    dati_docenti.then((dati)=>{
-        dati.map((elem)=>{
+    try{
+        //Cerco classe e docenti valutati dall'alunno in questione
+        await connessione()
+        
+        const dati_utenti = await TABELLA_UTENTI.find({token: tk}).toArray()
+        classe = dati_utenti[0].classe
+        docenti_alunno_valutati = dati_utenti[0].docenti_valutati
+
+        //Carico i docenti ancora da valutare dell'alunno
+        await connessione()
+
+        const dati_proferssori = await TABELLA_PROFESSORI.find().toArray()
+
+        dati_proferssori.map((elem)=>{
             if(elem.classi.indexOf(classe) !== -1){
                 indice_materie = elem.classi.indexOf(classe)
 
@@ -146,28 +194,38 @@ app.get('/getDocenti', (req, res) => {
                 messaggio: "I dati del docente sono stati estratti con successo!"
             }
         )
-    }).finally(()=>{ client.close() })
+        
+    } catch(e) {
+        res.status(500).json({
+            messaggio: "Si è verificato un errore durante il caricamento dei dati."
+        })
+    } finally {
+        client.close()
+    }
 })
 
-//con la valutaDocente puoi votare il docente che vuoi
-app.post('/valutaDocente', (req, res) => {
+//Middleware per inserire la valutazione di un docente nel db
+app.post('/valutaDocente', async(req, res) => {
     let cog_doc = req.body.cognome_docente_votato
     let nom_doc = req.body.nome_docente_votato
-    let id_dom = req.body.domande
+    let tk = req.body.token
     let voti = req.body.voti
-    let classe = classe_alunno_loggato
+    let id_dom = id_domande(QTADOM)
+    let classe = ""
     let i = 0
     let valutazioni_classe = []
 
+    //Filtri
     let filtro_docente = {
         "cognomedocente": cog_doc,
         "nomedocente": nom_doc
     }
 
     let filtro_alunno = {
-        "email": email_alunno_loggato
+        "token": tk
     }
 
+    //Strutture da impostare nel db
     let struttura_iniziale = {
         "cognomedocente": cog_doc,
         "nomedocente": nom_doc,
@@ -185,77 +243,69 @@ app.post('/valutaDocente', (req, res) => {
     }
 
     valutazioni_classe.map((elem, i)=>{
-        struttura_iniziale.valutazioni.push(elem)
+        struttura_iniziale.valutazioni.push(elem);
     })
 
-    //Inserimento dati nella tabella delle valutazioni dei docenti
-    connessione()
+    try {
+        //Cerco la classe dell'alunno
+        await connessione()
 
-    // Recupero dei dati dei voti dei docenti e inserimento dei nuovi dati
-    TABELLA_VOTI_DOCENTI.find().toArray()
-    .then((dati) => {
-        if (dati.length !== 0) {
-            let docente_valutato = false
+        const dati = await TABELLA_UTENTI.find({ token: tk }).toArray()
+        classe = dati[0].classe
 
-            dati.map((elem)=>{
-                if(dati.cognomedocente === cog_doc && dati.nomedocente === nom_doc){
-                    docente_valutato = true
-                }
-            })
-            
-            //Se il docente è stato già valutato gli inserisco le nuove valutazioni altrimenti inserisco il docente
-            if(docente_valutato === true){
-                return TABELLA_VOTI_DOCENTI.updateOne(
-                    filtro_docente, 
-                    { $push: { "valutazioni": { $each: valutazioni_classe } } 
-                }) 
-                && 
-                TABELLA_UTENTI.updateOne(
-                    filtro_alunno, 
-                    { $push: { "docenti_valutati": { nome_docente: nom_doc, cognome_docente: cog_doc } } 
-                })
-            } else {
-                return TABELLA_VOTI_DOCENTI.insertOne(struttura_iniziale) 
-                && 
-                TABELLA_UTENTI.updateOne(
-                    filtro_alunno, 
-                    { $push: { "docenti_valutati": { nome_docente: nom_doc, cognome_docente: cog_doc } } 
-                })
+        //Inserimento dati nella tabella delle valutazioni dei docenti
+        await connessione()
+
+        const datiVoti = await TABELLA_VOTI_DOCENTI.find().toArray()
+
+        let docente_valutato = false
+
+        datiVoti.map((elem)=>{
+            if(elem.cognomedocente === cog_doc && elem.nomedocente === nom_doc){
+                docente_valutato = true
             }
-        } else {
-            //Inserisco il primo docente valutato nel db
-            return TABELLA_VOTI_DOCENTI.insertOne(struttura_iniziale) 
-            && 
-            TABELLA_UTENTI.updateOne(
+        })
+
+        if(docente_valutato === true){
+            await TABELLA_VOTI_DOCENTI.updateOne(
+                filtro_docente, 
+                { $push: { "valutazioni": { $each: valutazioni_classe } } }
+            )
+
+            await TABELLA_UTENTI.updateOne(
                 filtro_alunno, 
-                { $push: { "docenti_valutati": { nome_docente: nom_doc, cognome_docente: cog_doc } } 
-            })
+                { $push: { "docenti_valutati": { nome_docente: nom_doc, cognome_docente: cog_doc } } }
+            )
+        } else {
+            await TABELLA_VOTI_DOCENTI.insertOne(struttura_iniziale)
+
+            await TABELLA_UTENTI.updateOne(
+                filtro_alunno, 
+                { $push: { "docenti_valutati": { nome_docente: nom_doc, cognome_docente: cog_doc } } }
+            )
         }
-    })
-    .then(() => {
+
         res.status(200).json({
             messaggio: "Valutazione inviata!"
         })
-    })
-    .catch((err) => {
+    } catch (e) {
         res.status(500).json({
-            errore: "Si è verificato un errore durante l'inserimento dei dati."
+            messaggio: "Si è verificato un errore durante l'inserimento dei dati."
         })
-    })
-    .finally(() => {
+    } finally {
         client.close()
-    })
+    }
 })
 
-//Con la getDomande ottieni tutte le domanda da fare al momento della valutazione del singolo docente
-app.get('/getDomande', (req, res) => {
-    connessione()
-
-    let dati_domande = TABELLA_DOMANDE.find().toArray()
+//Middleware per ottienre tutte le domanda da fare al momento della valutazione del singolo docente
+app.get('/getDomande', async(req, res) => {
     let array_domande = []
 
-    dati_domande.then((dati)=>{
-        array_domande = dati
+    try{
+        await connessione()
+        const dati_domande = await TABELLA_DOMANDE.find().toArray()
+        
+        array_domande = dati_domande
 
         res.status(200).json(
             { 
@@ -263,19 +313,86 @@ app.get('/getDomande', (req, res) => {
                 messaggio: 'Domande estratte!'
             }
         )
-    }).finally(()=>{ client.close() })
+    } catch (e) {
+        res.status(500).json({
+            messaggio: "Si è verificato un errore durante l'inserimento dei dati."
+        })
+    } finally {
+        client.close()
+    }
 })
 
-//Con la get media puoi ottenere la media dei voti del docente che vuoi
-app.get('/getMedia', (req, res) => {
-    res.end("sei alla pagina per visualizzare la media del docente")
-})
+//TODO - da cambiare tutto
+// const calcola_media =(lung, voti)=>{
+//     let lunghezza = lung
+//     let all_id = id_domande(lunghezza)
+//     let tutti_voti_suddivisi = []
+
+//     voti.map((elem, i)=>{
+//         let nvolte = 0
+//         let somma = 0
+//         let med = 0
+
+//         for(let y = 0; y < lunghezza; y++){
+//             console.log(voti[y].id + " " + all_id[i])
+//             if(voti[y].id === all_id[i]){
+//                 nvolte ++
+//                 somma += voti[y].voto
+
+//                 console.log(nvolte)
+
+//                 if(y === (lunghezza-1)){
+//                     med = somma/nvolte
+//                     tutti_voti_suddivisi.push({id: all_id[i], media: med})
+//                 }
+//             }
+//         }
+
+        
+//     })
+
+//     console.log(tutti_voti_suddivisi)
+
+//     return tutti_voti_suddivisi
+// }
 
 //con la viewDocente puoi visualizzare le info sui docenti
-app.get('/viewDocente', (req, res) => {
-    res.end("sei alla pagina per visualizzare il singolo docente")
+app.post('/viewDocente', async(req, res) => {
+    let nome = req.body.nome_docente
+    let cognome = req.body.cognome_docente
+    let voti_dom = []
+    let media_voti = []
+
+    //TODO - da cambiare tutto
+    // connessione()
+
+    // TABELLA_VOTI_DOCENTI.find({cognomedocente: cognome, nomedocente: nome}).toArray()
+    // .then((dati) => {
+    //     dati[0].valutazioni.map((elem)=>{
+    //         voti_dom.push({id:elem.domanda, voto:elem.voto})
+    //     })
+
+    //     media_voti = calcola_media(QTADOM, voti_dom)
+
+    //     media_voti.map((elem)=>{
+    //         console.log(elem)
+    //     })
+    // })
+    // .then(() => {
+    //     res.status(200).json({
+    //         messaggio: "Docente trovato!"
+    //     })
+    // })
+    // .catch((err) => {
+    //     res.status(500).json({
+    //         errore: "Si è verificato un errore durante l'inserimento dei dati."
+    //     })
+    // })
+    // .finally(() => {
+    //     client.close()
+    // })
 })
 
 app.listen(PORT, () => {
-    console.log(`Il server sta ascoltando alla porta ${PORT}`);
-});
+    console.log(`Il server sta ascoltando alla porta ${PORT}`)
+})
