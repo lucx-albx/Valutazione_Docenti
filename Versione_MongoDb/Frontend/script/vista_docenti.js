@@ -45,7 +45,7 @@ const carica_pagina_domande =(nom, cog)=>{
 const card_viewdocente =(id, media, nome, cognome)=>{
     return( 
         `
-            <div class="card_viewdocente mt-1" onclick='carica_pagina_domande("${nome}", "${cognome}")'>
+            <div class="card_viewdocente mt-1">
                 <p>Il docente <b>${nome}</b> <b>${cognome}</b> alla domanda <b>n${id}</b> ha come media: <b>${media}</b>
             </div>
         `
@@ -68,9 +68,12 @@ const viewdocente =()=>{
     })
     .then(testo=>testo.json())
     .then((data)=>{
-        data.media.map((elem)=>{
-            contenitore_viewdocente.innerHTML += card_viewdocente(elem.id, elem.media, nome_docente, cognome_docente)
-        })
+        alert(data.messaggio)
+        if(data.media != null){
+            data.media.map((elem)=>{
+                contenitore_viewdocente.innerHTML += card_viewdocente(elem.id, elem.media, nome_docente, cognome_docente)
+            })
+        }
     })
 }
 

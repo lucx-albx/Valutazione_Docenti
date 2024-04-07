@@ -80,7 +80,7 @@ const calcola_media =(voti)=>{
             }
         })
 
-        lista_media.push({id: elem, media: med})
+        lista_media.push({id: elem, media: med.toFixed(2)})
     })
 
     return lista_media
@@ -116,7 +116,7 @@ app.post('/login', async(req, res) => {
                 }
             )
         } else {
-            res.status(200).json(
+            res.json(
                 {
                     credenziali_res: false,
                     tuo_token: undefined,
@@ -125,7 +125,7 @@ app.post('/login', async(req, res) => {
             )
         }
     } catch(e){
-        res.status(200).json(
+        res.status(500).json(
             {
                 messaggio: 'Errore nel server, riprovare'
             }
@@ -357,21 +357,29 @@ app.post('/viewDocente', async(req, res) => {
 
         const dati_docenti = await TABELLA_VOTI_DOCENTI.find({cognomedocente: cognome, nomedocente: nome}).toArray()
 
-        console.log(dati_docenti[0].valutazioni)
+        console.log(dati_docenti)
         
-        dati_docenti[0].valutazioni.map((elem)=>{
-            voti_dom.push({id:elem.domanda, voto:elem.voto})
-        })
+        if(dati_docenti.length !== 0){
+            dati_docenti[0].valutazioni.map((elem)=>{
+                voti_dom.push({id:elem.domanda, voto:elem.voto})
+            })
 
-        let media_voti = calcola_media(voti_dom)
+            let media_voti = calcola_media(voti_dom)
 
-        res.status(500).json({
-            media: media_voti,
-            messaggio: "Media docente calcolata!"
-        })
+            res.status(200).json({
+                media: media_voti,
+                messaggio: "Media docente calcolata!"
+            })
+        } else {
+            res.json({
+                media: null,
+                messaggio: "Al momento il docente è inesistente."
+            })
+        }
     } catch(e){
         res.status(500).json({
-            messaggio: "Si è verificato un errore durante l'inserimento dei dati."
+            media: null,
+            messaggio: "Si è verificato un errore durante il calcolo della media"
         })
     } finally {
         client.close()
