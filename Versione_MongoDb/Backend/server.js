@@ -3,11 +3,13 @@
 //!npm install cors
 //!npm install mongodb
 //!npm install dotenv
+//!npm install crypto
 require('dotenv').config()
 
 const express = require('express')
 const cors = require("cors")
 const { MongoClient } = require("mongodb")
+const crypto = require('crypto')
 
 const client = new MongoClient("mongodb://localhost:27017") 
 
@@ -86,10 +88,46 @@ const calcola_media =(voti)=>{
     return lista_media
 }
 
+//Funzione per generare il token in chiaro
+const genera_token =(em)=>{
+    // Genera un array con 10.000 elementi
+    const array = Array.from({ length: 10000 }, (_, index) => index + 1)
+
+    // Estrae un dato casuale dall'array
+    const index = Math.floor(Math.random() * array.length)
+    const dato = array[index]
+
+    return em + String(dato)
+}
+
+//Funzione per la crittografia sha256
+function crittografia_sha256(psw) {
+	return new Promise((resolve, reject) => {
+		const password = psw
+		const data = Buffer.from(password)
+		const hash = crypto.createHash('sha256')	
+		
+		hash.on('error', (error) => {
+			reject(error)
+		})
+
+		hash.on('readable', () => {
+			const hashData = hash.read()
+			if (hashData) {
+				const hashHex = hashData.toString('hex')
+				resolve(hashHex)
+			}
+		})
+
+		hash.write(data)
+		hash.end()
+	})
+}
+
 //Middleware per fare l'accesso alla piattaforma
 app.post('/login', async(req, res) => {
     let email_utente = req.body.em_ut
-    let password = req.body.psw
+    let pass = req.body.psw
     let credenziali_corrette = false
     let tk = ''
 
@@ -98,16 +136,22 @@ app.post('/login', async(req, res) => {
         const dati_utenti = await TABELLA_UTENTI.find().toArray()
 
         dati_utenti.map((elem, i)=>{
-            if(elem.email == email_utente && elem.password == password){
+            if(elem.email == email_utente && elem.password == pass){
                 credenziali_corrette = true
                 loggato = true
                 email_alunno_loggato = elem.email
                 classe_alunno_loggato = elem.classe
-                tk = elem.token
             }
         })
 
         if(credenziali_corrette == true){
+            tk = await crittografia_sha256(genera_token(email_utente))
+
+            await TABELLA_UTENTI.updateOne(
+                {email: email_utente, password: pass},
+                {$set: {"token": tk}}
+            )
+
             res.status(200).json(
                 {
                     credenziali_res: true,
@@ -135,6 +179,53 @@ app.post('/login', async(req, res) => {
     }
 })
 
+//Middleware per sloggare l'utente dall'account
+app.post('/logout', async(req, res) => {
+    let tk = req.body.token
+
+    try{
+        await connessione()
+        const dati_utenti = await TABELLA_UTENTI.find({token: tk}).toArray()
+
+        if(dati_utenti[0].token !== ""){
+            if(dati_utenti.length !== 0){
+                await TABELLA_UTENTI.updateOne(
+                    {token: tk},
+                    {$set: {"token": ''}}
+                )
+
+                res.status(200).json(
+                    {
+                        successo: true,
+                        messaggio: "Sloggato con successo"
+                    }
+                )
+            } else {
+                res.json(
+                    {
+                        successo: false,
+                        messaggio: "Errore nella verifica dell'account"
+                    }
+                )
+            }
+        } else {
+            res.json({
+                docenti: null,
+                messaggio: "Autenticazione fallita"
+            })
+        }
+    } catch(e){
+        res.status(500).json(
+            {
+                successo: false,
+                messaggio: 'Errore nel server, riprovare'
+            }
+        )
+    } finally {
+        client.close()
+    }
+})
+
 //Middlware per controllare se l'utente è un admin
 app.post('/admin', async(req, res) => {
     let tk = req.body.token
@@ -145,7 +236,7 @@ app.post('/admin', async(req, res) => {
         const dati_utenti = await TABELLA_UTENTI.find().toArray()
         
         dati_utenti.map((elem, i)=>{
-            if(elem.token === tk){
+            if(elem.token === tk && elem.token !== ""){
                 email_utente = elem.email
             }
         })
@@ -154,12 +245,14 @@ app.post('/admin', async(req, res) => {
             res.status(200).json(
                 {
                     admin: true,
+                    messaggio: 'Benvenuto nella zona admin'
                 }
             )
         } else {
             res.status(200).json(
                 {
                     admin: false,
+                    messaggio: 'Benvenuto nella zona admin'
                 }
             )
         }
@@ -187,41 +280,49 @@ app.post('/getDocenti', async(req, res) => {
         await connessione()
         
         const dati_utenti = await TABELLA_UTENTI.find({token: tk}).toArray()
-        classe = dati_utenti[0].classe
-        docenti_alunno_valutati = dati_utenti[0].docenti_valutati
 
-        //Carico i docenti ancora da valutare dell'alunno
-        await connessione()
+        if(dati_utenti[0].token !== ""){
+            classe = dati_utenti[0].classe
+            docenti_alunno_valutati = dati_utenti[0].docenti_valutati
 
-        const dati_proferssori = await TABELLA_PROFESSORI.find().toArray()
+            //Carico i docenti ancora da valutare dell'alunno
+            await connessione()
 
-        dati_proferssori.map((elem)=>{
-            if(elem.classi.indexOf(classe) !== -1){
-                indice_materie = elem.classi.indexOf(classe)
+            const dati_proferssori = await TABELLA_PROFESSORI.find().toArray()
 
-                let docente_gia_votato = docenti_alunno_valutati.some(obj => obj.nome_docente === elem.nome && obj.cognome_docente === elem.cognome)
-                
-                if(docente_gia_votato !== true){
-                    docente.push(
-                        {
-                            nome: elem.nome,
-                            cognome: elem.cognome,
-                            materie: elem.materie[indice_materie]
-                        }
-                    )
+            dati_proferssori.map((elem)=>{
+                if(elem.classi.indexOf(classe) !== -1){
+                    indice_materie = elem.classi.indexOf(classe)
+
+                    let docente_gia_votato = docenti_alunno_valutati.some(obj => obj.nome_docente === elem.nome && obj.cognome_docente === elem.cognome)
+                    
+                    if(docente_gia_votato !== true){
+                        docente.push(
+                            {
+                                nome: elem.nome,
+                                cognome: elem.cognome,
+                                materie: elem.materie[indice_materie]
+                            }
+                        )
+                    }
                 }
-            }
-        })
+            })
 
-        res.status(200).json(
-            { 
-                docenti: docente,
-                messaggio: "I dati del docente sono stati estratti con successo!"
-            }
-        )
-        
+            res.status(200).json(
+                {
+                    docenti: docente,
+                    messaggio: "I dati del docente sono stati estratti con successo!"
+                }
+            )
+        } else {
+            res.json({
+                docenti: null,
+                messaggio: "Autenticazione fallita"
+            })
+        }
     } catch(e) {
         res.status(500).json({
+            docenti: null,
             messaggio: "Si è verificato un errore durante il caricamento dei dati."
         })
     } finally {
@@ -234,7 +335,7 @@ app.post('/valutaDocente', async(req, res) => {
     let cog_doc = req.body.cognome_docente_votato
     let nom_doc = req.body.nome_docente_votato
     let tk = req.body.token
-    let voti = req.body.voti
+    let valutazioni = req.body.voti // valutazioni 
     let id_dom = id_domande(QTADOM)
     let i = 0
     let valutazioni_classe = []
@@ -244,74 +345,81 @@ app.post('/valutaDocente', async(req, res) => {
         await connessione()
 
         const dati = await TABELLA_UTENTI.find({ token: tk }).toArray()
-        let classe = dati[0].classe
 
-        //Filtri
-        let filtro_docente = {
-            "cognomedocente": cog_doc,
-            "nomedocente": nom_doc
-        }
+        if(dati[0].token !== ""){
+            let classe = dati[0].classe
 
-        let filtro_alunno = {
-            "token": tk
-        }
-
-        //Strutture da impostare nel db
-        let struttura_iniziale = {
-            "cognomedocente": cog_doc,
-            "nomedocente": nom_doc,
-            "valutazioni" : []
-        }
-
-        for(i = 0; i < voti.length; i++){
-            valutazioni_classe.push(
-                {
-                    "classealunno": classe,
-                    "domanda": id_dom[i],
-                    "voto": voti[i]
-                }
-            )
-        }
-
-        valutazioni_classe.map((elem, i)=>{
-            struttura_iniziale.valutazioni.push(elem);
-        })
-
-        //Inserimento dati nella tabella delle valutazioni dei docenti
-        await connessione()
-
-        const datiVoti = await TABELLA_VOTI_DOCENTI.find().toArray()
-
-        let docente_valutato = false
-
-        datiVoti.map((elem)=>{
-            if(elem.cognomedocente === cog_doc && elem.nomedocente === nom_doc){
-                docente_valutato = true
+            //Filtri
+            let filtro_docente = {
+                "cognomedocente": cog_doc,
+                "nomedocente": nom_doc
             }
-        })
 
-        if(docente_valutato === true){
-            await TABELLA_VOTI_DOCENTI.updateOne(
-                filtro_docente, 
-                { $push: { "valutazioni": { $each: valutazioni_classe } } }
-            )
+            let filtro_alunno = {
+                "token": tk
+            }
 
-            await TABELLA_UTENTI.updateOne(
-                filtro_alunno, 
-                { $push: { "docenti_valutati": { nome_docente: nom_doc, cognome_docente: cog_doc } } }
-            )
+            //Strutture da impostare nel db
+            let struttura_iniziale = {
+                "cognomedocente": cog_doc,
+                "nomedocente": nom_doc,
+                "valutazioni" : []
+            }
+
+            for(i = 0; i < valutazioni.length; i++){
+                valutazioni_classe.push(
+                    {
+                        "classealunno": classe,
+                        "domanda": id_dom[i],
+                        "voto": valutazioni[i]
+                    }
+                )
+            }
+
+            valutazioni_classe.map((elem, i)=>{
+                struttura_iniziale.valutazioni.push(elem);
+            })
+
+            //Inserimento dati nella tabella delle valutazioni dei docenti
+            await connessione()
+
+            const datiVoti = await TABELLA_VOTI_DOCENTI.find().toArray()
+
+            let docente_valutato = false
+
+            datiVoti.map((elem)=>{
+                if(elem.cognomedocente === cog_doc && elem.nomedocente === nom_doc){
+                    docente_valutato = true
+                }
+            })
+
+            if(docente_valutato === true){
+                await TABELLA_VOTI_DOCENTI.updateOne(
+                    filtro_docente, 
+                    { $push: { "valutazioni": { $each: valutazioni_classe } } }
+                )
+
+                await TABELLA_UTENTI.updateOne(
+                    filtro_alunno, 
+                    { $push: { "docenti_valutati": { nome_docente: nom_doc, cognome_docente: cog_doc } } }
+                )
+            } else {
+                await TABELLA_VOTI_DOCENTI.insertOne(struttura_iniziale)
+
+                await TABELLA_UTENTI.updateOne(
+                    filtro_alunno, 
+                    { $push: { "docenti_valutati": { nome_docente: nom_doc, cognome_docente: cog_doc } } }
+                )
+            }
+
+            res.status(200).json({
+                messaggio: "Valutazione inviata!"
+            })
         } else {
-            await TABELLA_VOTI_DOCENTI.insertOne(struttura_iniziale)
-
-            await TABELLA_UTENTI.updateOne(
-                filtro_alunno, 
-                { $push: { "docenti_valutati": { nome_docente: nom_doc, cognome_docente: cog_doc } } }
-            )
+            res.json({
+                messaggio: "Autenticazione fallita"
+            })
         }
-
-        res.status(200).json({
-            messaggio: "Valutazione inviata!"
-        })
     } catch (e) {
         res.status(500).json({
             messaggio: "Si è verificato un errore durante l'inserimento dei dati."
@@ -350,26 +458,41 @@ app.get('/getDomande', async(req, res) => {
 app.post('/viewDocente', async(req, res) => {
     let nome = req.body.nome_docente
     let cognome = req.body.cognome_docente
+    let tk = req.body.token
     let voti_dom = []
 
     try{
         await connessione()
 
         const dati_docenti = await TABELLA_VOTI_DOCENTI.find({cognomedocente: cognome, nomedocente: nome}).toArray()
-
-        console.log(dati_docenti)
         
         if(dati_docenti.length !== 0){
-            dati_docenti[0].valutazioni.map((elem)=>{
-                voti_dom.push({id:elem.domanda, voto:elem.voto})
-            })
+            const dati_utenti = await TABELLA_UTENTI.find({token: tk}).toArray()
 
-            let media_voti = calcola_media(voti_dom)
+            if(dati_utenti.length !== 0 && dati_utenti[0].token !== ""){
+                if(dati_utenti[0].email === admin_email){
+                    dati_docenti[0].valutazioni.map((elem)=>{
+                        voti_dom.push({id:elem.domanda, voto:elem.voto})
+                    })
 
-            res.status(200).json({
-                media: media_voti,
-                messaggio: "Media docente calcolata!"
-            })
+                    let media_voti = calcola_media(voti_dom)
+
+                    res.status(200).json({
+                        media: media_voti,
+                        messaggio: "Media docente calcolata!"
+                    })
+                } else {
+                    res.json({
+                        media: null,
+                        messaggio: "Non sei autorizzato ad accedere a questa risorsa!"
+                    })
+                }
+            } else {
+                res.json({
+                    media: null,
+                    messaggio: "Non sei autorizzato ad accedere a questa risorsa!"
+                })
+            }
         } else {
             res.json({
                 media: null,

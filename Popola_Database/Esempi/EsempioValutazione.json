@@ -1,0 +1,11 @@
+{
+    "cognomeDocente": "Allione",
+    "nomeDocente": "Enrico",
+    "token": "4f08da6f75e69ebf8",
+    "valutazioni": [
+        {
+            "idDomanda": "Q001",
+            "voto": 10
+        }
+    ]
+}

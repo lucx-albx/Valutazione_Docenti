@@ -2,11 +2,9 @@
 //!npm install express
 //!npm install cors
 //!npm install mongodb
-//!npm install crypto
 const express = require("express")
 const cors = require("cors")
 const { MongoClient } = require("mongodb")
-const crypto = require('crypto')
 
 const app = express()
 const PORT = 5001
@@ -21,44 +19,6 @@ app.use(express.urlencoded({
 app.use(cors())
 app.options('*', cors())
 
-const genera_valore_casuale =()=>{
-    // Genera un array con un milione di elementi
-    const array = Array.from({ length: 1000000 }, (_, index) => index + 1)
-
-    // Estrae un dato casuale dall'array
-    const index = Math.floor(Math.random() * array.length)
-    const dato = array[index]
-
-    // Rimuove il dato estratto dall'array
-    array.splice(index, 1)
-
-    // Restituisce il dato estratto
-    return String(dato)
-}
-
-function crittografia_sha256(psw) {
-	return new Promise((resolve, reject) => {
-		const password = psw
-		const data = Buffer.from(password)
-		const hash = crypto.createHash('sha256')	
-		
-		hash.on('error', (error) => {
-			reject(error)
-		})
-
-		hash.on('readable', () => {
-			const hashData = hash.read()
-			if (hashData) {
-				const hashHex = hashData.toString('hex')
-				resolve(hashHex)
-			}
-		})
-
-		hash.write(data)
-		hash.end()
-	})
-}
-
 app.get('/carica_utenti', async(req, res) => {
     connessione()
 
@@ -66,50 +26,50 @@ app.get('/carica_utenti', async(req, res) => {
     
     miaCollection.insertMany(
         [
-            {email: 'admin@denina.it', password: 'admin', classe: 'admin', docenti_valutati: [], token: await crittografia_sha256(genera_valore_casuale())}, 
-            {email: 'alba.lucafrancesco@denina.it', password: 'alba.lucafrancesco', classe: '5L', docenti_valutati: [], token: await crittografia_sha256(genera_valore_casuale())}, 
-            {email: 'audisio.nicolo@denina.it', password: 'audisio.nicolo', classe: '5L', docenti_valutati: [], token: await crittografia_sha256(genera_valore_casuale())},
-            {email: 'baqiqi.francesco@denina.it', password: 'baqiqi.francesco', classe: '4L', docenti_valutati: [], token: await crittografia_sha256(genera_valore_casuale())},
-            {email: 'barra.erik@denina.it', password: 'barra.erik', classe: '4L', docenti_valutati: [], token: await crittografia_sha256(genera_valore_casuale())},
-            {email: 'barra.leonardo@denina.it', password: 'barra.leonardo', classe: '5L', docenti_valutati: [], token: await crittografia_sha256(genera_valore_casuale())},
-            {email: 'bastonero.stefano@denina.it', password: 'bastonero.stefano', classe: '4L', docenti_valutati: [], token: await crittografia_sha256(genera_valore_casuale())},
-            {email: 'bianco.andrea@denina.it', password: 'bianco.andrea', classe: '4L', docenti_valutati: [], token: await crittografia_sha256(genera_valore_casuale())},
-            {email: 'bondar.oleksandr@denina.it', password: 'bondar.oleksandr', classe: '4L', docenti_valutati: [], token: await crittografia_sha256(genera_valore_casuale())},
-            {email: 'bracco.mattia@denina.it', password: 'bracco.mattia', classe: '5L', docenti_valutati: [], token: await crittografia_sha256(genera_valore_casuale())},
-            {email: 'canino.leonardo@denina.it', password: 'canino.leonardo', classe: '4L', docenti_valutati: [], token: await crittografia_sha256(genera_valore_casuale())},
-            {email: 'castellano.gabriele@denina.it', password: 'castellano.gabriele', classe: '4L', docenti_valutati: [], token: await crittografia_sha256(genera_valore_casuale())},
-            {email: 'chen.lihua@denina.it', password: 'chen.lihua', classe: '4L', docenti_valutati: [], token: await crittografia_sha256(genera_valore_casuale())},
-            {email: 'culasso.edoardo@denina.it', password: 'culasso.edoardo', classe: '5L', docenti_valutati: [], token: await crittografia_sha256(genera_valore_casuale())},
-            {email: 'de.bonisimone@denina.it', password: 'de.bonisimone', classe: '5L', docenti_valutati: [], token: await crittografia_sha256(genera_valore_casuale())},
-            {email: 'dimarco.mirko@denina.it', password: 'dimarco.mirko', classe: '5L', docenti_valutati: [], token: await crittografia_sha256(genera_valore_casuale())},
-            {email: 'dossetto.giuseppe@denina.it', password: 'dossetto.giuseppe', classe: '5L', docenti_valutati: [], token: await crittografia_sha256(genera_valore_casuale())},
-            {email: 'elakhdar.ayoub@denina.it', password: 'elakhdar.ayoub', classe: '4L', docenti_valutati: [], token: await crittografia_sha256(genera_valore_casuale())},
-            {email: 'fortunato.marcochiaffredo@denina.it', password: 'fortunato.marcochiaffredo', classe: '5L', docenti_valutati: [], token: await crittografia_sha256(genera_valore_casuale())},
-            {email: 'galeasso.federico@denina.it', password: 'galeasso.federico', classe: '5L', docenti_valutati: [], token: await crittografia_sha256(genera_valore_casuale())},
-            {email: 'galfre.beniaminomaria@denina.it', password: 'galfre.beniaminomaria', classe: '5L', docenti_valutati: [], token: await crittografia_sha256(genera_valore_casuale())},
-            {email: 'garello.matteo@denina.it', password: 'garello.matteo', classe: '4L', docenti_valutati: [], token: await crittografia_sha256(genera_valore_casuale())},
-            {email: 'garnero.luca@denina.it', password: 'garnero.luca', classe: '4L', docenti_valutati: [], token: await crittografia_sha256(genera_valore_casuale())},
-            {email: 'garnerone.stefano@denina.it', password: 'garnerone.stefano', classe: '4L', docenti_valutati: [], token: await crittografia_sha256(genera_valore_casuale())},
-            {email: 'giusiano.massimo@denina.it', password: 'giusiano.massimo', classe: '5L', docenti_valutati: [], token: await crittografia_sha256(genera_valore_casuale())},
-            {email: 'kadiasi.daniele@denina.it', password: 'kadiasi.daniele', classe: '4L', docenti_valutati: [], token: await crittografia_sha256(genera_valore_casuale())},
-            {email: 'lepori.gabriele@denina.it', password: 'lepori.gabriele', classe: '4L', docenti_valutati: [], token: await crittografia_sha256(genera_valore_casuale())},
-            {email: 'martini.gabriele@denina.it', password: 'martini.gabriele', classe: '5L', docenti_valutati: [], token: await crittografia_sha256(genera_valore_casuale())},
-            {email: 'masante.federico@denina.it', password: 'masante.federico', classe: '4L', docenti_valutati: [], token: await crittografia_sha256(genera_valore_casuale())},
-            {email: 'mazzone.samuele@denina.it', password: 'mazzone.samuele', classe: '4L', docenti_valutati: [], token: await crittografia_sha256(genera_valore_casuale())},
-            {email: 'minetti.leonardo@denina.it', password: 'minetti.leonardo', classe: '5L', docenti_valutati: [], token: await crittografia_sha256(genera_valore_casuale())},
-            {email: 'monge.isacco@denina.it', password: 'monge.isacco', classe: '4L', docenti_valutati: [], token: await crittografia_sha256(genera_valore_casuale())},
-            {email: 'occelli.emanuel@denina.it', password: 'occelli.emanuel', classe: '4L', docenti_valutati: [], token: await crittografia_sha256(genera_valore_casuale())},
-            {email: 'pal.bhushan@denina.it', password: 'pal.bhushan', classe: '4L', docenti_valutati: [], token: await crittografia_sha256(genera_valore_casuale())},
-            {email: 'paseri.kevin@denina.it', password: 'paseri.kevin', classe: '5L', docenti_valutati: [], token: await crittografia_sha256(genera_valore_casuale())},
-            {email: 'pellitta.francesco@denina.it', password: 'pellitta.francesco', classe: '4L', docenti_valutati: [], token: await crittografia_sha256(genera_valore_casuale())},
-            {email: 'ramello.sebastiano@denina.it', password: 'ramello.sebastiano', classe: '4L', docenti_valutati: [], token: await crittografia_sha256(genera_valore_casuale())},
-            {email: 'ribotta.gabriele@denina.it', password: 'ribotta.gabriele', classe: '4L', docenti_valutati: [], token: await crittografia_sha256(genera_valore_casuale())},
-            {email: 'singh.siddharth@denina.it', password: 'singh.siddharth', classe: '4L', docenti_valutati: [], token: await crittografia_sha256(genera_valore_casuale())},
-            {email: 'soave.sebastiano@denina.it', password: 'soave.sebastiano', classe: '5L', docenti_valutati: [], token: await crittografia_sha256(genera_valore_casuale())},
-            {email: 'stefanin.francesco@denina.it', password: 'stefanin.francesco', classe: '4L', docenti_valutati: [], token: await crittografia_sha256(genera_valore_casuale())},
-            {email: 'vaschetto.emanuele@denina.it', password: 'vaschetto.emanuele', classe: '5L', docenti_valutati: [], token: await crittografia_sha256(genera_valore_casuale())},
-            {email: 'volpe.giovanni@denina.it', password: 'volpe.giovanni', classe: '4L', docenti_valutati: [], token: await crittografia_sha256(genera_valore_casuale())},
-            {email: 'zhou.chenghuan@denina.it', password: 'zhou.chenghuan', classe: '5L', docenti_valutati: [], token: await crittografia_sha256(genera_valore_casuale())}
+            {email: 'admin@denina.it', password: 'admin', classe: 'admin', docenti_valutati: [], token: ""}, 
+            {email: 'alba.lucafrancesco@denina.it', password: 'alba.lucafrancesco', classe: '5L', docenti_valutati: [], token: ""}, 
+            {email: 'audisio.nicolo@denina.it', password: 'audisio.nicolo', classe: '5L', docenti_valutati: [], token: ""},
+            {email: 'baqiqi.francesco@denina.it', password: 'baqiqi.francesco', classe: '4L', docenti_valutati: [], token: ""},
+            {email: 'barra.erik@denina.it', password: 'barra.erik', classe: '4L', docenti_valutati: [], token: ""},
+            {email: 'barra.leonardo@denina.it', password: 'barra.leonardo', classe: '5L', docenti_valutati: [], token: ""},
+            {email: 'bastonero.stefano@denina.it', password: 'bastonero.stefano', classe: '4L', docenti_valutati: [], token: ""},
+            {email: 'bianco.andrea@denina.it', password: 'bianco.andrea', classe: '4L', docenti_valutati: [], token: ""},
+            {email: 'bondar.oleksandr@denina.it', password: 'bondar.oleksandr', classe: '4L', docenti_valutati: [], token: ""},
+            {email: 'bracco.mattia@denina.it', password: 'bracco.mattia', classe: '5L', docenti_valutati: [], token: ""},
+            {email: 'canino.leonardo@denina.it', password: 'canino.leonardo', classe: '4L', docenti_valutati: [], token: ""},
+            {email: 'castellano.gabriele@denina.it', password: 'castellano.gabriele', classe: '4L', docenti_valutati: [], token: ""},
+            {email: 'chen.lihua@denina.it', password: 'chen.lihua', classe: '4L', docenti_valutati: [], token: ""},
+            {email: 'culasso.edoardo@denina.it', password: 'culasso.edoardo', classe: '5L', docenti_valutati: [], token: ""},
+            {email: 'de.bonisimone@denina.it', password: 'de.bonisimone', classe: '5L', docenti_valutati: [], token: ""},
+            {email: 'dimarco.mirko@denina.it', password: 'dimarco.mirko', classe: '5L', docenti_valutati: [], token: ""},
+            {email: 'dossetto.giuseppe@denina.it', password: 'dossetto.giuseppe', classe: '5L', docenti_valutati: [], token: ""},
+            {email: 'elakhdar.ayoub@denina.it', password: 'elakhdar.ayoub', classe: '4L', docenti_valutati: [], token: ""},
+            {email: 'fortunato.marcochiaffredo@denina.it', password: 'fortunato.marcochiaffredo', classe: '5L', docenti_valutati: [], token: ""},
+            {email: 'galeasso.federico@denina.it', password: 'galeasso.federico', classe: '5L', docenti_valutati: [], token: ""},
+            {email: 'galfre.beniaminomaria@denina.it', password: 'galfre.beniaminomaria', classe: '5L', docenti_valutati: [], token: ""},
+            {email: 'garello.matteo@denina.it', password: 'garello.matteo', classe: '4L', docenti_valutati: [], token: ""},
+            {email: 'garnero.luca@denina.it', password: 'garnero.luca', classe: '4L', docenti_valutati: [], token: ""},
+            {email: 'garnerone.stefano@denina.it', password: 'garnerone.stefano', classe: '4L', docenti_valutati: [], token: ""},
+            {email: 'giusiano.massimo@denina.it', password: 'giusiano.massimo', classe: '5L', docenti_valutati: [], token: ""},
+            {email: 'kadiasi.daniele@denina.it', password: 'kadiasi.daniele', classe: '4L', docenti_valutati: [], token: ""},
+            {email: 'lepori.gabriele@denina.it', password: 'lepori.gabriele', classe: '4L', docenti_valutati: [], token: ""},
+            {email: 'martini.gabriele@denina.it', password: 'martini.gabriele', classe: '5L', docenti_valutati: [], token: ""},
+            {email: 'masante.federico@denina.it', password: 'masante.federico', classe: '4L', docenti_valutati: [], token: ""},
+            {email: 'mazzone.samuele@denina.it', password: 'mazzone.samuele', classe: '4L', docenti_valutati: [], token: ""},
+            {email: 'minetti.leonardo@denina.it', password: 'minetti.leonardo', classe: '5L', docenti_valutati: [], token: ""},
+            {email: 'monge.isacco@denina.it', password: 'monge.isacco', classe: '4L', docenti_valutati: [], token: ""},
+            {email: 'occelli.emanuel@denina.it', password: 'occelli.emanuel', classe: '4L', docenti_valutati: [], token: ""},
+            {email: 'pal.bhushan@denina.it', password: 'pal.bhushan', classe: '4L', docenti_valutati: [], token: ""},
+            {email: 'paseri.kevin@denina.it', password: 'paseri.kevin', classe: '5L', docenti_valutati: [], token: ""},
+            {email: 'pellitta.francesco@denina.it', password: 'pellitta.francesco', classe: '4L', docenti_valutati: [], token: ""},
+            {email: 'ramello.sebastiano@denina.it', password: 'ramello.sebastiano', classe: '4L', docenti_valutati: [], token: ""},
+            {email: 'ribotta.gabriele@denina.it', password: 'ribotta.gabriele', classe: '4L', docenti_valutati: [], token: ""},
+            {email: 'singh.siddharth@denina.it', password: 'singh.siddharth', classe: '4L', docenti_valutati: [], token: ""},
+            {email: 'soave.sebastiano@denina.it', password: 'soave.sebastiano', classe: '5L', docenti_valutati: [], token: ""},
+            {email: 'stefanin.francesco@denina.it', password: 'stefanin.francesco', classe: '4L', docenti_valutati: [], token: ""},
+            {email: 'vaschetto.emanuele@denina.it', password: 'vaschetto.emanuele', classe: '5L', docenti_valutati: [], token: ""},
+            {email: 'volpe.giovanni@denina.it', password: 'volpe.giovanni', classe: '4L', docenti_valutati: [], token: ""},
+            {email: 'zhou.chenghuan@denina.it', password: 'zhou.chenghuan', classe: '5L', docenti_valutati: [], token: ""}
         ]
     )
 
@@ -299,7 +259,7 @@ app.get('/carica_professori', (req, res) => {
                     ["INGLESE"]
                 ],
                 "istituto":["RIVOIRA"]
-            },	
+            }
         ]
     )
 

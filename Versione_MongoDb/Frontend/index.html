@@ -1,20 +1,20 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="it">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
+    <link rel="stylesheet" href="./css/style.css">
+
+    <title>Inserisci dati - Valutazione Docenti</title>
+
 </head>
 <body>
-    <center>
-        <h1>Accedi</h1>
+    <center class="body-btn">
+        <button onclick="carica('carica_utenti')">CARICA UTENTI</button>
 
-        <div >
-            <input type="text" id="em_ut" placeholder="Email..." value="admin@denina.it"> <br>
-            <input type="text" id="psw" placeholder="Password..." value="admin"> <br>
+        <button onclick="carica('carica_domande')">CARICA DOMANDE</button>
 
-            <input type="button" onclick="accedi()" value="Accedi">
-        </div>
+        <button onclick="carica('carica_professori')">CARICA PROFESSORI</button>
     </center>
 
     <script src="./script/index.js"></script>

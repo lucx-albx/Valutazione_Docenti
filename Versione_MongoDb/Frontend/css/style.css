@@ -1,36 +1,22 @@
-.carica_docenti{
+.body-btn{
+    display: flex;
+    flex-direction: column;
+
     gap: 20px;
 }
 
-.card_docente{
-    border: 3px solid black;
-
-    display: flex;
-    flex-direction: column;
-    padding: 15px;
+button{
+    border: none;
+    color: white;
+    background-color: blue;
+    width: 100%;
+    padding: 10px;
+    border-radius: 5px;
+    transition: 0.5s;
+    font-weight: bold;
 }
 
-.card_docente:hover{
+button:hover{
     cursor: pointer;
-}
-
-.card_domande{
-    border: 3px solid black;
-
-    display: flex;
-    flex-direction: column;
-    padding: 15px;
-}
-
-.card_viewdocente{
-    border: 3px solid black;
-
-    display: flex;
-    flex-direction: column;
-    padding: 15px;
-    font-size: 20px;
-}
-
-.mt-1{
-    margin-top: 10px;
+    background-color: rgb(56, 56, 255);
 }
