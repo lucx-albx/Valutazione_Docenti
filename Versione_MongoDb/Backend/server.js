@@ -41,22 +41,22 @@ const connessione = async () => {
     }
 }
 
-//Funzione per costruire id delle domande
+//Funzione per calcolare id domande
 const id_domande =(qta_dom)=>{
     let id = []
     let i = 0
 
     for(i = 0; i < qta_dom; i++){
         if((i+1) < 10){
-            id.push('00' + (i+1))
+            id.push('q00' + (i+1))
         }
         
         if((i+1) > 9 && (i+1) < 99){
-            id.push('0' + (i+1))
-        } 
+            id.push('q0' + (i+1))
+        }
         
         if((i+1) > 99){
-            id.push(String(i+1))
+            id.push('q' + String(i+1))
         }
     }
 
@@ -332,11 +332,10 @@ app.post('/getDocenti', async(req, res) => {
 
 //Middleware per inserire la valutazione di un docente nel db
 app.post('/valutaDocente', async(req, res) => {
-    let cog_doc = req.body.cognome_docente_votato
-    let nom_doc = req.body.nome_docente_votato
+    let cog_doc = req.body.cognomeDocente
+    let nom_doc = req.body.nomeDocente
     let tk = req.body.token
-    let valutazioni = req.body.voti // valutazioni 
-    let id_dom = id_domande(QTADOM)
+    let valutazioni = req.body.valutazioni
     let i = 0
     let valutazioni_classe = []
 
@@ -370,8 +369,8 @@ app.post('/valutaDocente', async(req, res) => {
                 valutazioni_classe.push(
                     {
                         "classealunno": classe,
-                        "domanda": id_dom[i],
-                        "voto": valutazioni[i]
+                        "domanda": valutazioni[i].idDomanda,
+                        "voto": valutazioni[i].voto
                     }
                 )
             }

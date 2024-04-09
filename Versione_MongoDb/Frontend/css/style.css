@@ -1,22 +1,64 @@
-.body-btn{
-    display: flex;
-    flex-direction: column;
-
+.carica_docenti{
     gap: 20px;
 }
 
-button{
-    border: none;
-    color: white;
-    background-color: blue;
-    width: 100%;
-    padding: 10px;
+.card_docente{
+    border: 2px solid black;
     border-radius: 5px;
-    transition: 0.5s;
-    font-weight: bold;
+
+    display: flex;
+    flex-direction: column;
+    padding: 15px;
 }
 
-button:hover{
+.card_docente:hover{
     cursor: pointer;
-    background-color: rgb(56, 56, 255);
 }
+
+.card_domande{
+    border: 2px solid black;
+    border-radius: 5px;
+
+    display: flex;
+    flex-direction: column;
+    padding: 15px;
+}
+
+.card_viewdocente{
+    border: 2px solid black;
+    border-radius: 5px;
+
+    display: flex;
+    flex-direction: column;
+    padding: 15px;
+    font-size: 20px;
+}
+
+.mt-1{
+    margin-top: 10px;
+}
+
+input{
+    padding: 9px;
+    border: 1px solid black;
+    border-radius: 5px;
+    min-width: 240px;
+
+    outline: none!important;
+}
+
+button{
+    min-width: 260px;
+    background-color: blue;
+    border-radius: 5px;
+    padding: 10px;
+    color: white;
+    font-weight: bold;
+    border: none;
+    transition: 0.5s;
+} 
+
+button:hover{
+    background-color: rgb(85, 85, 244);
+    cursor: pointer;
+} 
