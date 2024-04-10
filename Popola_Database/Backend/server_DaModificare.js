@@ -264,44 +264,91 @@ app.get('/carica_professori', (req, res) => {
             {
                 "nome":"Patrick",
                 "cognome":"Gourdain",
-                "classi": ["4L"],
-                "materie": [
-                    ["TELECOMUNICAZIONI"]
-                ],
-                "istituto":["RIVOIRA"]
+				"classi_materie": [
+					{
+						"nome": "4L",
+						"materie": ["TELECOMUNICAZIONI"],
+						"plesso": "RIVOIRA"
+					}
+				]
             },
             {
-                "nome":"Enrico",
-                "cognome":"Allione",
-                "classi": ["1L", "4L", "5L"],
-                "materie": [
-                    ["INFORMATICA"],
-                    ["TPSIT"],
-                    ["TPSIT"]
-                ],
-                "istituto":["RIVOIRA"]
-            },
+				"nome":"Enrico",
+				"cognome":"Allione",
+				"classi_materie": [
+					{
+						"nome": "1L",
+						"materie": ["INFORMATICA"],
+						"plesso": "RIVOIRA"
+					},
+					{
+						"nome": "1F",
+						"materie": ["INFORMATICA"],
+						"plesso": "RIVOIRA"
+					},
+					{
+						"nome": "1G",
+						"materie": ["INFORMATICA"],
+						"plesso": "RIVOIRA"
+					},
+					{
+						"nome": "1K",
+						"materie": ["INFORMATICA"],
+						"plesso": "DENINA"
+					},
+					{
+						"nome": "4L",
+						"materie": ["TPSIT"],
+						"plesso": "RIVOIRA"
+					}, 
+					{
+						"nome": "5L",
+						"materie": ["TPSIT"],
+						"plesso": "RIVOIRA"
+					}
+				]
+			},
             {
                 "nome":"Andrea",
                 "cognome":"Giordano",
-                "classi": ["1L", "4A", "4L", "5L"],
-                "materie": [
-                    ["INFORMATICA"],
-                    ["INFORMATICA"],
-                    ["TPSIT"],
-                    ["TPSIT"]
-                ],
-                "istituto":["Denina","RIVOIRA"]
+				"classi_materie": [
+					{
+						"nome": "1L",
+						"materie": ["INFORMATICA"],
+						"plesso": "RIVOIRA"
+					},
+					{
+						"nome": "4A",
+						"materie": ["INFORMATICA"],
+						"plesso": "DENINA"
+					},
+					{
+						"nome": "4L",
+						"materie": ["TPSIT"],
+						"plesso": "RIVOIRA"
+					},
+					{
+						"nome": "5L",
+						"materie": ["TPSIT"],
+						"plesso": "RIVOIRA"
+					}
+				]
             },
             {
                 "nome":"Sara",
-                "cognome":"Obertino",
-                "classi": ["4L", "5L"],
-                "materie":[
-                    ["RELIGIONE"],
-                    ["RELIGIONE"]
-                ],
-                "istituto":["RIVOIRA"]
+                "cognome":"Obertino",	
+				"classi_materie": [
+					{
+						"nome": "4L",
+						"materie": ["RELIGIONE"],
+						"plesso": "RIVOIRA"
+					},
+					{
+						"nome": "5L",
+						"materie": ["RELIGIONE"],
+						"plesso": "RIVOIRA"
+					}
+				]
             },
 			// FINE Galeasso
 
