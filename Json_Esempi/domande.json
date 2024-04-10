@@ -1,0 +1,12 @@
+[
+    {"domanda":"L'insegnante espone gli argomenti in modo chiaro ed efficace con opportuni esempi.", "id":"q001"},
+    {"domanda":"L'insegnante si mostra disponibile per chiarimenti e in caso attua strategie di recupero e/o approfondimento.", "id":"q002"},
+    {"domanda":"L'insegnante è disponibile ad aiutare il singolo a sviluppare un metodo di apprendimento e di lavoro per quanto riguarda la sua materia.", "id":"q003"},
+    {"domanda":"L'insegnante utilizza, oltre al libro di testo, strumenti e contenuti aggiuntivi utili alla didattica.", "id":"q004"},
+    {"domanda":"I metodi didattici utilizzati dall'insegnante favoriscono l'apprendimento del corso di studi.", "id":"q005"},
+    {"domanda":"Il carico di lavoro è conforme alle esigenze e alle possibilità degli studenti.", "id":"q006"},
+    {"domanda":"La programmazione delle verifiche ed attività è adeguata e viene comunicata con buon anticipo.", "id":"q007"},
+    {"domanda":"I tempi di correzione delle prove scritte rispettano i 15 giorni previsti dalla norma.", "id":"q008"},
+    {"domanda":"L'insegnante, insieme agli studenti, riesce a mantenere la disciplina all'interno della classe e a creare un ambiente sereno e costruttivo.", "id":"q009"},
+    {"domanda":"L'insegnante si dimostra attento a valorizzare interessi e attitudini degli studenti.", "id":"q010"}
+]
