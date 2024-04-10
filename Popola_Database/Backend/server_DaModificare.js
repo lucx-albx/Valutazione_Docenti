@@ -107,50 +107,94 @@ app.get('/carica_professori', (req, res) => {
     collect.insertMany(
         [
 			// INIZIO Giusiano
-            {
+                       {
                 "nome":"Manuela",
                 "cognome":"Dalbesio",
-                "classi": ["3L", "4L", "5L"],
-                "materie": [
-                    ["SISTEMI E RETI", "INFORMATICA"],
-                    ["SISTEMI E RETI", "INFORMATICA"], 
-                    ["SISTEMI E RETI", "INFORMATICA", "GESTIONE PROGETTO"]
-                ],
-                "istituto":["RIVOIRA"]
+                "classi_materie":[
+                    {
+                        "nome":"3L",
+                        "materie":["SISTEMI E RETI", "INFORMATICA"],
+                        "plesso":"RIVOIRA"
+                    },
+                    {
+                        "nome":"4L",
+                        "materie":["SISTEMI E RETI", "INFORMATICA"],
+                        "plesso":"RIVOIRA" 
+                    },
+                    {
+                        "nome":"5L",
+                        "materie":["SISTEMI E RETI", "INFORMATICA", "GESTIONE PROGETTO"],
+                        "plesso":"RIVOIRA"
+                    }
+                ]
             },
             {
                 "nome":"Pierangelo",
                 "cognome": "Verga",
-                "classi": ["2L", "3L", "4L", "5L"],
-                "materie": [
-                    ["STA"],
-                    ["SISTEMI E RETI"],
-                    ["SISTEMI E RETI"],
-                    ["SISTEMI E RETI", "GESTIONE PROGETTO"]
-                ],
-                "istituto":["RIVOIRA"]
+                "classi_materie":[
+                    {
+                        "nome":"2L",
+                        "materie":["STA"],
+                        "plesso":"RIVOIRA"
+                    },
+                    {
+                        "nome":"3L",
+                        "materie":["SISTEMI E RETI"],
+                        "plesso":"RIVOIRA"
+                    },
+                    {
+                        "nome":"4L",
+                        "materie":["SISTEMI E RETI"],
+                        "plesso":"RIVOIRA" 
+                    },
+                    {
+                        "nome":"5L",
+                        "materie":["SISTEMI E RETI", "GESTIONE PROGETTO"],
+                        "plesso":"RIVOIRA"
+                    }
+                ]
             },
             {
                 "nome":"Flaviano",
                 "cognome":"Monge",
-                "classi": ["3L", "4L", "5L"],
-                "materie": [
-                    ["INFORMATICA"],
-                    ["INFORMATICA"],
-                    ["INFORMATICA"]
-                ],
-                "istituto":["RIVOIRA"]
+                "classi_materie":[
+                    {
+                        "nome":"3L",
+                        "materie":["INFORMATICA"],
+                        "plesso":"RIVOIRA"
+                    },
+                    {
+                        "nome":"4L",
+                        "materie":["INFORMATICA"],
+                        "plesso":"RIVOIRA" 
+                    },
+                    {
+                        "nome":"5L",
+                        "materie":["INFORMATICA"],
+                        "plesso":"RIVOIRA"
+                    }
+                ]
             },
             {
                 "nome":"Monica",
                 "cognome": "Rosso",
-                "classi": ["1X", "4L", "5F"],
-                "materie": [
-                    ["INGLESE"],
-                    ["INGLESE"],
-                    ["INGLESE"]
-                ],
-                "istituto":["RIVOIRA"]
+                "classi_materie":[
+                    {
+                        "nome":"1X",
+                        "materie":["INGLESE"],
+                        "plesso":"RIVOIRA"
+                    },
+                    {
+                        "nome":"4L",
+                        "materie":["INGLESE"],
+                        "plesso":"RIVOIRA" 
+                    },
+                    {
+                        "nome":"5F",
+                        "materie":["INGLESE"],
+                        "plesso":"RIVOIRA"
+                    }
+                ]
             },
 			// FINE Giusiano
 
