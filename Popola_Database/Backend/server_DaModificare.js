@@ -158,41 +158,61 @@ app.get('/carica_professori', (req, res) => {
             {
                 "nome":"Carlotta",
                 "cognome":"Rosso",
-                "classi": ["4L", "5L"],
-                "materie": [
-                    ["EDUCAZIONE FISICA"],
-                    ["EDUCAZIONE FISICA"]
-                ],
-                "istituto":["RIVOIRA"]
+                "classi_materie": [
+                    {
+                        "nome": "4L",
+                        "materie": ["EDUCAZIONE FISICA"],
+                        "plesso": "RIVOIRA"
+                    },
+                    {
+                        "nome": "5L",
+                        "materie": ["EDUCAZIONE FISICA"],
+                        "plesso": "RIVOIRA"
+                    }
+                ]
             },
             {
                 "nome":"Giovanna",
                 "cognome":"Migliore",
-                "classi": ["4L", "5L"],
-                "materie": [
-                    ["LINGUA E LETTERATURA ITALIANA", "STORIA"],
-                    ["LINGUA E LETTERATURA ITALIANA", "STORIA"]
-                ],
-                "istituto":["RIVOIRA"]
+                "classi_materie": [
+                    {
+                        "nome": "4L",
+                        "materie": ["LINGUA E LETTERATURA ITALIANA", "STORIA"],
+                        "plesso": "RIVOIRA"
+                    },
+                    {
+                        "nome": "5L",
+                        "materie": ["LINGUA E LETTERATURA ITALIANA", "STORIA"],
+                        "plesso": "RIVOIRA"
+                    }
+                ]
             },
             {
                 "nome":"Raffaella",
                 "cognome":"Cometto",
-                "classi": ["2L", "4L"],
-                "materie": [
-                    ["MATEMATICA"],
-                    ["MATEMATICA"]
-                ],
-                "istituto":["RIVOIRA"]
+                "classi_materie": [
+                    {
+                        "nome": "2L",
+                        "materie": ["MATEMATICA"],
+                        "plesso": "RIVOIRA"
+                    },
+                    {
+                        "nome": "4L",
+                        "materie": ["MATEMATICA"],
+                        "plesso": "RIVOIRA"
+                    }
+                ]
             },
             {
                 "nome":"Nazareno",
                 "cognome":"Muratore",
-                "classi": ["4L"],
-                "materie": [
-                    ["TELECOMUNICAZIONI"]
-                ],
-                "istituto":["RIVOIRA"]
+                "classi_materie": [
+                    {
+                        "nome": "4L",
+                        "materie": ["TELECOMUNICAZIONI"],
+                        "plesso": "RIVOIRA"
+                    }
+                ]
             },
 			// FINE Paseri
 
