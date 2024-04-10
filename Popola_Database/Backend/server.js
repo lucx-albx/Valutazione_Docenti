@@ -8,7 +8,7 @@ const { MongoClient } = require("mongodb")
 
 const app = express()
 const PORT = 5001
-const client = new MongoClient("mongodb://localhost:27017")
+const client = new MongoClient("mongodb://127.0.0.1:27017")
 const connessione = async ()=>{ await client.connect }
 
 app.use(express.json())
@@ -69,7 +69,22 @@ app.get('/carica_utenti', async(req, res) => {
             {email: 'stefanin.francesco@denina.it', password: 'stefanin.francesco', classe: '4L', docenti_valutati: [], token: ""},
             {email: 'vaschetto.emanuele@denina.it', password: 'vaschetto.emanuele', classe: '5L', docenti_valutati: [], token: ""},
             {email: 'volpe.giovanni@denina.it', password: 'volpe.giovanni', classe: '4L', docenti_valutati: [], token: ""},
-            {email: 'zhou.chenghuan@denina.it', password: 'zhou.chenghuan', classe: '5L', docenti_valutati: [], token: ""}
+            {email: 'zhou.chenghuan@denina.it', password: 'zhou.chenghuan', classe: '5L', docenti_valutati: [], token: ""},
+	    {email: 'manuela.dalbesio@denina.it', password: 'manuela.dalbesio', token: ""},
+            {email: 'pierangelo.verga@denina.it', password: 'pierangelo.verga', token: ""},
+            {email: 'flaviano.monge@denina.it', password: 'flaviano.monge', token: ""},
+            {email: 'monica.rosso@denina.it', password: 'monica.rosso', token: ""},
+            {email: 'carlotta.rosso@denina.it', password: 'carlotta.rosso', token: ""},
+            {email: 'giovanna.migliore@denina.it', password: 'giovanna.migliore', token: ""},
+            {email: 'raffaella.cometto@denina.it', password: 'raffaella.cometto', token: ""},
+            {email: 'nazareno.muratore@denina.it', password: 'nazareno.muratore', token: ""},
+            {email: 'patrick.gourdain@denina.it', password: 'patrick.gourdain', token: ""},
+            {email: 'enrico.allione@denina.it', password: 'enrico.allione', token: ""},
+            {email: 'andrea.giordano@denina.it', password: 'andrea.giordano', token: ""},
+            {email: 'sara.obertino@denina.it', password: 'sara.obertino', token: ""},
+            {email: 'rossella.rossaro@denina.it', password: 'rossella.rossaro', token: ""},
+            {email: 'laura.cavallera@denina.it', password: 'laura.cavallera', token: ""},
+            {email: 'carlo.depetris@denina.it', password: 'carlo.depetris', token: ""}
         ]
     )
 
@@ -106,160 +121,293 @@ app.get('/carica_professori', (req, res) => {
 
     collect.insertMany(
         [
-            {
+			// INIZIO Giusiano
+                       {
                 "nome":"Manuela",
                 "cognome":"Dalbesio",
-                "classi": ["3L", "4L", "5L"],
-                "materie": [
-                    ["SISTEMI E RETI", "INFORMATICA"],
-                    ["SISTEMI E RETI", "INFORMATICA"], 
-                    ["SISTEMI E RETI", "INFORMATICA", "GESTIONE PROGETTO"]
-                ],
-                "istituto":["RIVOIRA"]
+                "classi_materie":[
+                    {
+                        "nome":"3L",
+                        "materie":["SISTEMI E RETI", "INFORMATICA"],
+                        "plesso":"RIVOIRA"
+                    },
+                    {
+                        "nome":"4L",
+                        "materie":["SISTEMI E RETI", "INFORMATICA"],
+                        "plesso":"RIVOIRA" 
+                    },
+                    {
+                        "nome":"5L",
+                        "materie":["SISTEMI E RETI", "INFORMATICA", "GESTIONE PROGETTO"],
+                        "plesso":"RIVOIRA"
+                    }
+                ]
             },
             {
                 "nome":"Pierangelo",
                 "cognome": "Verga",
-                "classi": ["2L", "3L", "4L", "5L"],
-                "materie": [
-                    ["STA"],
-                    ["SISTEMI E RETI"],
-                    ["SISTEMI E RETI"],
-                    ["SISTEMI E RETI", "GESTIONE PROGETTO"]
-                ],
-                "istituto":["RIVOIRA"]
+                "classi_materie":[
+                    {
+                        "nome":"2L",
+                        "materie":["STA"],
+                        "plesso":"RIVOIRA"
+                    },
+                    {
+                        "nome":"3L",
+                        "materie":["SISTEMI E RETI"],
+                        "plesso":"RIVOIRA"
+                    },
+                    {
+                        "nome":"4L",
+                        "materie":["SISTEMI E RETI"],
+                        "plesso":"RIVOIRA" 
+                    },
+                    {
+                        "nome":"5L",
+                        "materie":["SISTEMI E RETI", "GESTIONE PROGETTO"],
+                        "plesso":"RIVOIRA"
+                    }
+                ]
             },
             {
                 "nome":"Flaviano",
                 "cognome":"Monge",
-                "classi": ["3L", "4L", "5L"],
-                "materie": [
-                    ["INFORMATICA"],
-                    ["INFORMATICA"],
-                    ["INFORMATICA"]
-                ],
-                "istituto":["RIVOIRA"]
+                "classi_materie":[
+                    {
+                        "nome":"3L",
+                        "materie":["INFORMATICA"],
+                        "plesso":"RIVOIRA"
+                    },
+                    {
+                        "nome":"4L",
+                        "materie":["INFORMATICA"],
+                        "plesso":"RIVOIRA" 
+                    },
+                    {
+                        "nome":"5L",
+                        "materie":["INFORMATICA"],
+                        "plesso":"RIVOIRA"
+                    }
+                ]
             },
             {
                 "nome":"Monica",
                 "cognome": "Rosso",
-                "classi": ["1X", "4L", "5F"],
-                "materie": [
-                    ["INGLESE"],
-                    ["INGLESE"],
-                    ["INGLESE"]
-                ],
-                "istituto":["RIVOIRA"]
+                "classi_materie":[
+                    {
+                        "nome":"1X",
+                        "materie":["INGLESE"],
+                        "plesso":"RIVOIRA"
+                    },
+                    {
+                        "nome":"4L",
+                        "materie":["INGLESE"],
+                        "plesso":"RIVOIRA" 
+                    },
+                    {
+                        "nome":"5F",
+                        "materie":["INGLESE"],
+                        "plesso":"RIVOIRA"
+                    }
+                ]
             },
+			// FINE Giusiano
+
+			// INIZIO Paseri
             {
                 "nome":"Carlotta",
                 "cognome":"Rosso",
-                "classi": ["4L", "5L"],
-                "materie": [
-                    ["EDUCAZIONE FISICA"],
-                    ["EDUCAZIONE FISICA"]
-                ],
-                "istituto":["RIVOIRA"]
+                "classi_materie": [
+                    {
+                        "nome": "4L",
+                        "materie": ["EDUCAZIONE FISICA"],
+                        "plesso": "RIVOIRA"
+                    },
+                    {
+                        "nome": "5L",
+                        "materie": ["EDUCAZIONE FISICA"],
+                        "plesso": "RIVOIRA"
+                    }
+                ]
             },
             {
                 "nome":"Giovanna",
                 "cognome":"Migliore",
-                "classi": ["4L", "5L"],
-                "materie": [
-                    ["LINGUA E LETTERATURA ITALIANA", "STORIA"],
-                    ["LINGUA E LETTERATURA ITALIANA", "STORIA"]
-                ],
-                "istituto":["RIVOIRA"]
+                "classi_materie": [
+                    {
+                        "nome": "4L",
+                        "materie": ["LINGUA E LETTERATURA ITALIANA", "STORIA"],
+                        "plesso": "RIVOIRA"
+                    },
+                    {
+                        "nome": "5L",
+                        "materie": ["LINGUA E LETTERATURA ITALIANA", "STORIA"],
+                        "plesso": "RIVOIRA"
+                    }
+                ]
             },
             {
                 "nome":"Raffaella",
                 "cognome":"Cometto",
-                "classi": ["2L", "4L"],
-                "materie": [
-                    ["MATEMATICA"],
-                    ["MATEMATICA"]
-                ],
-                "istituto":["RIVOIRA"]
+                "classi_materie": [
+                    {
+                        "nome": "2L",
+                        "materie": ["MATEMATICA"],
+                        "plesso": "RIVOIRA"
+                    },
+                    {
+                        "nome": "4L",
+                        "materie": ["MATEMATICA"],
+                        "plesso": "RIVOIRA"
+                    }
+                ]
             },
             {
                 "nome":"Nazareno",
                 "cognome":"Muratore",
-                "classi": ["4L"],
-                "materie": [
-                    ["TELECOMUNICAZIONI"]
-                ],
-                "istituto":["RIVOIRA"]
+                "classi_materie": [
+                    {
+                        "nome": "4L",
+                        "materie": ["TELECOMUNICAZIONI"],
+                        "plesso": "RIVOIRA"
+                    }
+                ]
             },
+			// FINE Paseri
+
+			// INIZIO Galeasso
             {
                 "nome":"Patrick",
                 "cognome":"Gourdain",
-                "classi": ["4L"],
-                "materie": [
-                    ["TELECOMUNICAZIONI"]
-                ],
-                "istituto":["RIVOIRA"]
+				"classi_materie": [
+					{
+						"nome": "4L",
+						"materie": ["TELECOMUNICAZIONI"],
+						"plesso": "RIVOIRA"
+					}
+				]
             },
             {
-                "nome":"Enrico",
-                "cognome":"Allione",
-                "classi": ["1L", "4L", "5L"],
-                "materie": [
-                    ["INFORMATICA"],
-                    ["TPSIT"],
-                    ["TPSIT"]
-                ],
-                "istituto":["RIVOIRA"]
-            },
+				"nome":"Enrico",
+				"cognome":"Allione",
+				"classi_materie": [
+					{
+						"nome": "1L",
+						"materie": ["INFORMATICA"],
+						"plesso": "RIVOIRA"
+					},
+					{
+						"nome": "1F",
+						"materie": ["INFORMATICA"],
+						"plesso": "RIVOIRA"
+					},
+					{
+						"nome": "1G",
+						"materie": ["INFORMATICA"],
+						"plesso": "RIVOIRA"
+					},
+					{
+						"nome": "1K",
+						"materie": ["INFORMATICA"],
+						"plesso": "DENINA"
+					},
+					{
+						"nome": "4L",
+						"materie": ["TPSIT"],
+						"plesso": "RIVOIRA"
+					}, 
+					{
+						"nome": "5L",
+						"materie": ["TPSIT"],
+						"plesso": "RIVOIRA"
+					}
+				]
+			},
             {
                 "nome":"Andrea",
                 "cognome":"Giordano",
-                "classi": ["1L", "4A", "4L", "5L"],
-                "materie": [
-                    ["INFORMATICA"],
-                    ["INFORMATICA"],
-                    ["TPSIT"],
-                    ["TPSIT"]
-                ],
-                "istituto":["Denina","RIVOIRA"]
+				"classi_materie": [
+					{
+						"nome": "1L",
+						"materie": ["INFORMATICA"],
+						"plesso": "RIVOIRA"
+					},
+					{
+						"nome": "4A",
+						"materie": ["INFORMATICA"],
+						"plesso": "DENINA"
+					},
+					{
+						"nome": "4L",
+						"materie": ["TPSIT"],
+						"plesso": "RIVOIRA"
+					},
+					{
+						"nome": "5L",
+						"materie": ["TPSIT"],
+						"plesso": "RIVOIRA"
+					}
+				]
             },
             {
                 "nome":"Sara",
-                "cognome":"Obertino",
-                "classi": ["4L", "5L"],
-                "materie":[
-                    ["RELIGIONE"],
-                    ["RELIGIONE"]
-                ],
-                "istituto":["RIVOIRA"]
+                "cognome":"Obertino",	
+				"classi_materie": [
+					{
+						"nome": "4L",
+						"materie": ["RELIGIONE"],
+						"plesso": "RIVOIRA"
+					},
+					{
+						"nome": "5L",
+						"materie": ["RELIGIONE"],
+						"plesso": "RIVOIRA"
+					}
+				]
             },
+			// FINE Galeasso
+
+		// INIZIO Culasso
             {
                 "nome":"Rossella",
                 "cognome":"Rossaro",
-                "classi": ["4L", "5L"],
-                "materie":[
-                    ["EDUCAZIONE CIVICA"],
-                    ["EDUCAZIONE CIVICA"]
-                ],
-                "istituto":["RIVOIRA"]
+                "classi_materie": [
+                    {
+                        "nome":"4L",
+                        "materie":["EDUCAZIONE CIVICA"],
+                        "plesso":"RIVOIRA"
+                    },
+                    {
+                        "nome":"5L",
+                        "materie":["EDUCAZIONE CIVICA"],
+                        "plesso":"RIVOIRA"
+                    }
+                ]
+                
             },
             {
                 "nome":"Laura",
                 "cognome":"Cavallera",
-                "classi": ["5L"],
-                "materie":[
-                    ["MATEMATICA"]
-                ],
-                "istituto":["RIVOIRA"]
+                "classi_materie": [
+                    {
+                        "nome":"5L",
+                        "materie":["MATEMATICA"],
+                        "plesso":"RIVOIRA" 
+                    }
+                ]
             },
             {
                 "nome":"Carlo",
                 "cognome":"Depetris",
-                "classi": ["5L"],
-                "materie":[
-                    ["INGLESE"]
-                ],
-                "istituto":["RIVOIRA"]
+                "classi_materie": [
+                    {
+                        "nome":"5L",
+                        "materie":["INGLESE"],
+                        "plesso":"RIVOIRA" 
+                    }
+                ] 
             }
+			// FINE Culasso
         ]
     )
 
