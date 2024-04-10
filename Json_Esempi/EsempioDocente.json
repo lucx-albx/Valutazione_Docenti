@@ -1,0 +1,36 @@
+{
+    "nome":"Enrico",
+    "cognome":"Allione",
+    "classi_materie": [
+        {
+            "nome": "1L",
+            "materie": ["INFORMATICA"],
+            "plesso": "RIVOIRA"
+        },
+        {
+            "nome": "1F",
+            "materie": ["INFORMATICA"],
+            "plesso": "RIVOIRA"
+        },
+        {
+            "nome": "1G",
+            "materie": ["INFORMATICA"],
+            "plesso": "RIVOIRA"
+        },
+        {
+            "nome": "1K",
+            "materie": ["INFORMATICA"],
+            "plesso": "DENINA"
+        },
+        {
+            "nome": "4L",
+            "materie": ["TPSIT"],
+            "plesso": "RIVOIRA"
+        }, 
+        {
+            "nome": "5L",
+            "materie": ["TPSIT"],
+            "plesso": "RIVOIRA"
+        }
+    ]
+}
