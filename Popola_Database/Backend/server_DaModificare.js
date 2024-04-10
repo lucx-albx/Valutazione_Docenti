@@ -305,34 +305,45 @@ app.get('/carica_professori', (req, res) => {
             },
 			// FINE Galeasso
 
-			// INIZIO Culasso
+		// INIZIO Culasso
             {
                 "nome":"Rossella",
                 "cognome":"Rossaro",
-                "classi": ["4L", "5L"],
-                "materie":[
-                    ["EDUCAZIONE CIVICA"],
-                    ["EDUCAZIONE CIVICA"]
-                ],
-                "istituto":["RIVOIRA"]
+                "classi_materie": [
+                    {
+                        "nome":"4L",
+                        "materie":["EDUCAZIONE CIVICA"],
+                        "plesso":"RIVOIRA"
+                    },
+                    {
+                        "nome":"5L",
+                        "materie":["EDUCAZIONE CIVICA"],
+                        "plesso":"RIVOIRA"
+                    }
+                ]
+                
             },
             {
                 "nome":"Laura",
                 "cognome":"Cavallera",
-                "classi": ["5L"],
-                "materie":[
-                    ["MATEMATICA"]
-                ],
-                "istituto":["RIVOIRA"]
+                "classi_materie": [
+                    {
+                        "nome":"5L",
+                        "materie":["MATEMATICA"],
+                        "plesso":"RIVOIRA" 
+                    }
+                ]
             },
             {
                 "nome":"Carlo",
                 "cognome":"Depetris",
-                "classi": ["5L"],
-                "materie":[
-                    ["INGLESE"]
-                ],
-                "istituto":["RIVOIRA"]
+                "classi_materie": [
+                    {
+                        "nome":"5L",
+                        "materie":["INGLESE"],
+                        "plesso":"RIVOIRA" 
+                    }
+                ] 
             }
 			// FINE Culasso
         ]
