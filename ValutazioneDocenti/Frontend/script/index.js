@@ -1,6 +1,5 @@
 const LINK_SERVER = 'http://localhost:3001/'
 const API_LOGIN = LINK_SERVER + 'login'
-const API_LOADED_PAGE = LINK_SERVER + 'variabili_onload'
 
 const accedi =()=>{
     let em_ut = document.querySelector('#em_ut').value

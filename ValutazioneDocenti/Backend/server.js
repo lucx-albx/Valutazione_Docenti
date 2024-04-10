@@ -256,7 +256,7 @@ app.post('/ruolo_utente', async(req, res) => {
 })
 
 //Middlware per ottenre tutti i docenti che insegnano nella tua classe
-app.post('/getDocenti', async(req, res) => {
+app.post('/get_docenti', async(req, res) => {
     let tk = req.body.token
     let classe = ""
     let docente = []
@@ -322,7 +322,7 @@ app.post('/getDocenti', async(req, res) => {
 })
 
 //Middleware per inserire la valutazione di un docente nel db
-app.post('/valutaDocente', async(req, res) => {
+app.post('/valuta_docente', async(req, res) => {
     let cog_doc = req.body.cognomeDocente
     let nom_doc = req.body.nomeDocente
     let tk = req.body.token
@@ -420,7 +420,7 @@ app.post('/valutaDocente', async(req, res) => {
 })
 
 //Middleware per ottienre tutte le domanda da fare al momento della valutazione del singolo docente
-app.get('/getDomande', async(req, res) => {
+app.get('/get_domande', async(req, res) => {
     let array_domande = []
 
     try{
@@ -445,7 +445,7 @@ app.get('/getDomande', async(req, res) => {
 })
 
 //con la viewDocente puoi visualizzare le info sui docenti
-app.post('/viewDocente', async(req, res) => {
+app.post('/view_docente', async(req, res) => {
     let nome = req.body.nome_docente
     let cognome = req.body.cognome_docente
     let tk = req.body.token

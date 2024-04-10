@@ -1,8 +1,7 @@
 const LINK_SERVER = 'http://localhost:3001/'
-const API_LOADED_PAGE = LINK_SERVER + 'variabili_onload'
 const API_LOGOUT = LINK_SERVER + 'logout'
-const API_DOCENTI = LINK_SERVER + 'getDocenti'
-const API_VIEWDOCENTE = LINK_SERVER + 'viewDocente'
+const API_DOCENTI = LINK_SERVER + 'get_docenti'
+const API_VIEWDOCENTE = LINK_SERVER + 'view_docente'
 const API_RUOLO= LINK_SERVER + 'ruolo_utente'
 
 const carica_docenti =()=>{

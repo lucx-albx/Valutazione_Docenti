@@ -1,7 +1,6 @@
 const LINK_SERVER = 'http://localhost:3001/'
-const API_LOADED_PAGE = LINK_SERVER + 'variabili_onload'
-const API_DOMANDE = LINK_SERVER + 'getDomande'
-const API_VOTA_DOCENTE = LINK_SERVER + 'valutaDocente'
+const API_DOMANDE = LINK_SERVER + 'get_domande'
+const API_VOTA_DOCENTE = LINK_SERVER + 'valuta_docente'
 
 const carica_domande =()=>{
     let contenitore = document.querySelector(".carica_domande")
