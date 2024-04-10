@@ -1,0 +1,22 @@
+.body-btn{
+    display: flex;
+    flex-direction: column;
+
+    gap: 20px;
+}
+
+button{
+    border: none;
+    color: white;
+    background-color: blue;
+    width: 100%;
+    padding: 10px;
+    border-radius: 5px;
+    transition: 0.5s;
+    font-weight: bold;
+}
+
+button:hover{
+    cursor: pointer;
+    background-color: rgb(56, 56, 255);
+}
