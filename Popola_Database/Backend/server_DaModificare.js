@@ -69,7 +69,22 @@ app.get('/carica_utenti', async(req, res) => {
             {email: 'stefanin.francesco@denina.it', password: 'stefanin.francesco', classe: '4L', docenti_valutati: [], token: ""},
             {email: 'vaschetto.emanuele@denina.it', password: 'vaschetto.emanuele', classe: '5L', docenti_valutati: [], token: ""},
             {email: 'volpe.giovanni@denina.it', password: 'volpe.giovanni', classe: '4L', docenti_valutati: [], token: ""},
-            {email: 'zhou.chenghuan@denina.it', password: 'zhou.chenghuan', classe: '5L', docenti_valutati: [], token: ""}
+            {email: 'zhou.chenghuan@denina.it', password: 'zhou.chenghuan', classe: '5L', docenti_valutati: [], token: ""},
+	    {email: 'manuela.dalbesio@denina.it', password: 'manuela.dalbesio', token: ""},
+            {email: 'pierangelo.verga@denina.it', password: 'pierangelo.verga', token: ""},
+            {email: 'flaviano.monge@denina.it', password: 'flaviano.monge', token: ""},
+            {email: 'monica.rosso@denina.it', password: 'monica.rosso', token: ""},
+            {email: 'carlotta.rosso@denina.it', password: 'carlotta.rosso', token: ""},
+            {email: 'giovanna.migliore@denina.it', password: 'giovanna.migliore', token: ""},
+            {email: 'raffaella.cometto@denina.it', password: 'raffaella.cometto', token: ""},
+            {email: 'nazareno.muratore@denina.it', password: 'nazareno.muratore', token: ""},
+            {email: 'patrick.gourdain@denina.it', password: 'patrick.gourdain', token: ""},
+            {email: 'enrico.allione@denina.it', password: 'enrico.allione', token: ""},
+            {email: 'andrea.giordano@denina.it', password: 'andrea.giordano', token: ""},
+            {email: 'sara.obertino@denina.it', password: 'sara.obertino', token: ""},
+            {email: 'rossella.rossaro@denina.it', password: 'rossella.rossaro', token: ""},
+            {email: 'laura.cavallera@denina.it', password: 'laura.cavallera', token: ""},
+            {email: 'carlo.depetris@denina.it', password: 'carlo.depetris', token: ""}
         ]
     )
 
