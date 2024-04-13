@@ -2,7 +2,9 @@ const LINK_SERVER = 'http://localhost:3001/'
 const API_LOGOUT = LINK_SERVER + 'logout'
 const API_DOCENTI = LINK_SERVER + 'get_docenti'
 const API_VIEWDOCENTE = LINK_SERVER + 'view_docente'
-const API_RUOLO= LINK_SERVER + 'ruolo_utente'
+const API_RUOLO = LINK_SERVER + 'ruolo_utente'
+const API_INIZIA_TERMINA_VALUTAZIONI = LINK_SERVER + 'start_stop_valutazioni'
+const API_NOME_COGNOME_DOCENTE = LINK_SERVER + 'get_nome_cognome_docente'
 
 const carica_docenti =()=>{
     let contenitore = document.querySelector(".carica_docenti")
@@ -17,12 +19,16 @@ const carica_docenti =()=>{
     })
     .then(testo=>testo.json())
     .then((data)=>{
-        if(data.docenti.length !== 0){
-            data.docenti.map((elem)=>{
-                contenitore.innerHTML += card_docente(elem.nome, elem.cognome, elem.materie)
-            })
+        if(data.valuta === true){
+            if(data.docenti.length !== 0){
+                data.docenti.map((elem)=>{
+                    contenitore.innerHTML += card_docente(elem.nome, elem.cognome, elem.materie)
+                })
+            } else {
+                contenitore.innerHTML += "<b> Non ci sono più docenti da valutare.<b>"
+            }
         } else {
-            contenitore.innerHTML += "<b> Non ci sono più docenti da valutare.<b>"
+            contenitore.innerHTML += "<b> Il periodo per l'inserimento delle valutazioni non è ancora iniziato.<b>"
         }
     })
 }
@@ -45,11 +51,21 @@ const carica_pagina_domande =(nom, cog)=>{
     window.location.href = './domande.html';
 }
 
-const card_viewdocente =(id, media, nome, cognome)=>{
+const card_viewdocente =(domanda, media, nome, cognome)=>{
     return( 
         `
             <div class="card_viewdocente mt-1">
-                <p>Il docente <b>${nome}</b> <b>${cognome}</b> alla domanda <b>n${id.slice(1)}</b> ha come media: <b>${media}</b>
+                <div>
+                    <b>${nome}${cognome}</b>
+                </div>
+
+                <div>
+                    <p>${domanda}</p>
+                </div> 
+
+                <div>
+                    Media domanda: <b>${media}</b>
+                </div>
             </div>
         `
     )
@@ -75,7 +91,7 @@ const viewdocente =()=>{
         alert(data.messaggio)
         if(data.media != null){
             data.media.map((elem)=>{
-                contenitore_viewdocente.innerHTML += card_viewdocente(elem.id, elem.media, nome_docente, cognome_docente)
+                contenitore_viewdocente.innerHTML += card_viewdocente(elem.domanda, elem.media, nome_docente, cognome_docente)
             })
         }
     })
@@ -102,8 +118,7 @@ const controlla_ruolo_utente_e_carica_interfaccia =()=>{
             `
                 <h1>Tuoi Docenti</h1>
 
-                <div class="carica_docenti">
-                </div>
+                <div class="carica_docenti"></div>
 
                 <br>
 
@@ -127,6 +142,11 @@ const controlla_ruolo_utente_e_carica_interfaccia =()=>{
                 <button onclick="viewdocente()">Cerca</button>
 
                 <br>
+                <br>
+
+                <button onclick="inizia_termina_val()">Inizia / termina valutazioni</button>
+
+                <br>
 
                 <div class="cont_media_docente"></div>
 
@@ -134,8 +154,76 @@ const controlla_ruolo_utente_e_carica_interfaccia =()=>{
 
                 <button class="mt-1" onclick="logout()">Logout</button>
             `
+        } else if(data.tipo === 'D'){
+            container_interface.innerHTML +=
+            `
+                <h1>Tuoi Docenti</h1>
+
+                <div class="container_media_docenti"></div>
+
+                <br>
+
+                <button class="mt-1" onclick="logout()">Logout</button>
+            `
+
+            carica_media_docenti()
         }
     })
+}
+
+const carica_media_docenti =()=>{
+    let cmedoc = document.querySelector(".container_media_docenti")
+    let token = localStorage.getItem('token')
+
+    fetch(API_NOME_COGNOME_DOCENTE, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({token})
+    })
+    .then(testo=>testo.json())
+    .then((data)=>{
+        if(data.nome !== null && data.cognome !== null){
+            let nome_docente = data.nome
+            let cognome_docente = data.cognome
+
+            fetch(API_VIEWDOCENTE, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({nome_docente, cognome_docente, token})
+            })
+            .then(testo=>testo.json())
+            .then((data)=>{
+                if(data.media != null){
+                    data.media.map((elem)=>{
+                        cmedoc.innerHTML += card_viewdocente(elem.domanda, elem.media, nome_docente, cognome_docente)
+                    })
+                }
+            })
+        } else {
+            cmedoc += `${data.messaggio}`
+        }
+    }) 
+
+}
+
+const inizia_termina_val =()=>{
+    let token = localStorage.getItem('token')
+
+    fetch(API_INIZIA_TERMINA_VALUTAZIONI, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({token})
+    })
+    .then(testo=>testo.json())
+    .then((data)=>{
+        alert(data.messaggio)
+    }) 
 }
 
 const controlla_se_loggato =()=>{

@@ -543,7 +543,7 @@ app.post('/start_stop_valutazioni', async(req, res) => {
         }
     } catch (e) {
         res.status(500).json({
-            domande: null,
+            valuta: null,
             messaggio: "Si è verificato un errore nel server."
         })
     } finally {
