@@ -1,34 +1,12 @@
+//! INIZIO BLOCCO VARIABLI E COSTANTI
 const LINK_SERVER = 'http://localhost:3001/'
 const API_DOMANDE = LINK_SERVER + 'get_domande'
 const API_VOTA_DOCENTE = LINK_SERVER + 'valuta_docente'
+//! FINE BLOCCO VARIABLI E COSTANTI
 
-const carica_domande =()=>{
-    let contenitore = document.querySelector(".carica_domande")
-    let contenitore_info_docente = document.querySelector(".docente-info")
 
-    contenitore_info_docente.innerHTML += `Valuta ${localStorage.nome_docente} ${localStorage.cognome_docente}`
 
-    fetch(API_DOMANDE)
-    .then(testo=>testo.json())
-    .then((data)=>{
-        data.domande.map((elem, i)=>{
-            contenitore.innerHTML += card_domanda(elem.domanda, i+1)
-        })
-    })
-}
-
-const card_domanda =(domanda, num)=>{
-    return( 
-        `
-            <div class="card_domande mt-1">
-                <h3>Domanda n ${num}°</h3>
-                <p>${domanda}</p>
-                <input type="number" min=2 max=10 class="voto" value="6">
-            </div>
-        `
-    )
-}
-
+//! INIZIO BLOCCO FUNZIONI GENERALI
 const ottieni_voti =()=>{
     let input_valutazioni = document.querySelectorAll(".voto")
     let valutazioni = []
@@ -74,6 +52,45 @@ const crea_valutazioni =(voti, id)=>{
     return val
 }
 
+const controlla_se_loggato =()=>{
+    let log = localStorage.getItem('loggato')
+
+    if(log === 'false' || log === null){
+        window.location.href = './index.html'
+    }        
+}
+//! FINE BLOCCO FUNZIONI GENERALI
+
+
+
+//! INIZIO BLOCCO FUNZIONI PER LE DOMANDE
+const card_domanda =(domanda, num)=>{
+    return( 
+        `
+            <div class="card_domande mt-1">
+                <h3>Domanda n ${num}°</h3>
+                <p>${domanda}</p>
+                <input type="number" min=2 max=10 class="voto" value="6">
+            </div>
+        `
+    )
+}
+
+const carica_domande =()=>{
+    let contenitore = document.querySelector(".carica_domande")
+    let contenitore_info_docente = document.querySelector(".docente-info")
+
+    contenitore_info_docente.innerHTML += `Valuta ${localStorage.nome_docente} ${localStorage.cognome_docente}`
+
+    fetch(API_DOMANDE)
+    .then(testo=>testo.json())
+    .then((data)=>{
+        data.domande.map((elem, i)=>{
+            contenitore.innerHTML += card_domanda(elem.domanda, i+1)
+        })
+    })
+}
+
 const invia_valutazione =()=>{
     let voti = ottieni_voti()
     let id_dom = id_domande(voti.length)
@@ -96,16 +113,13 @@ const invia_valutazione =()=>{
         window.location.href = './vista_docenti.html';
     })
 }
+//! FINE BLOCCO FUNZIONI PER LE DOMANDE
 
-const controlla_se_loggato =()=>{
-    let log = localStorage.getItem('loggato')
 
-    if(log === 'false' || log === null){
-        window.location.href = './index.html'
-    }        
-}
 
+//! INIZIO BLOCCO DELLE FUNZIONI CHE SI ESEGUONO AL CARICARSI DELLA PAGINA
 window.addEventListener('load', 
     controlla_se_loggato(),
     carica_domande()
 )
+//! FINE BLOCCO DELLE FUNZIONI CHE SI ESEGUONO AL CARICARSI DELLA PAGINA

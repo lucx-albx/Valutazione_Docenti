@@ -4,12 +4,15 @@
 //!npm install mongodb
 //!npm install dotenv
 //!npm install crypto
+//!npm install pdfkit
+//!npm install fs
 require('dotenv').config()
-
 const express = require('express')
 const cors = require("cors")
 const { MongoClient } = require("mongodb")
 const crypto = require('crypto')
+const PDFDocument = require('pdfkit')
+const fs = require('fs')
 
 const client = new MongoClient("mongodb://localhost:27017") 
 
@@ -186,7 +189,7 @@ app.post('/logout', async(req, res) => {
         await connessione()
         const dati_utenti = await TABELLA_UTENTI.find({token: tk}).toArray()
 
-        if(dati_utenti[0].token !== ""){
+        if(dati_utenti[0].token !== "" && dati_utenti.length !== 0){
             if(dati_utenti.length !== 0){
                 await TABELLA_UTENTI.updateOne(
                     {token: tk},
@@ -266,7 +269,7 @@ app.post('/get_nome_cognome_docente', async(req, res) => {
         await connessione()
         const dati_utenti = await TABELLA_UTENTI.find({token: tk}).toArray()
         
-        if(dati_utenti[0].tipo === "D" && dati_utenti[0].token !== ""){
+        if(dati_utenti[0].tipo === "D" && dati_utenti[0].token !== "" && dati_utenti.length !== 0){
             res.status(200).json(
                 {
                     nome: dati_utenti[0].nome,
@@ -310,7 +313,7 @@ app.post('/get_docenti', async(req, res) => {
             
             const dati_singolo_utente = await TABELLA_UTENTI.find({token: tk}).toArray()
 
-            if(dati_singolo_utente[0].token !== ""){
+            if(dati_singolo_utente[0].token !== "" && dati_singolo_utente.length !== 0){
                 if(dati_singolo_utente[0].tipo === "S"){
                     classe = dati_singolo_utente[0].classe
                     docenti_alunno_valutati = dati_singolo_utente[0].docenti_valutati
@@ -388,7 +391,7 @@ app.post('/valuta_docente', async(req, res) => {
 
             const dati = await TABELLA_UTENTI.find({ token: tk }).toArray()
 
-            if(dati[0].token !== ""){
+            if(dati[0].token !== "" && dati.length !== 0){
                 let classe = dati[0].classe
 
                 //Filtri
@@ -484,7 +487,7 @@ app.post('/admin_console', async(req, res) => {
         await connessione()
         const dati = await TABELLA_UTENTI.find({ token: tk }).toArray()
 
-        if(dati[0].token !== ""){
+        if(dati[0].token !== "" && dati.length !== 0){
             res.json(
                 [
                     {
@@ -524,7 +527,7 @@ app.post('/start_stop_valutazioni', async(req, res) => {
         await connessione()
         const dati = await TABELLA_UTENTI.find({ token: tk }).toArray()
 
-        if(dati[0].token !== ""){
+        if(dati[0].token !== "" && dati.length !== 0){
             if(valutazioni_avviate === false){
                 valutazioni_avviate = true
 
@@ -635,6 +638,87 @@ app.post('/view_docente', async(req, res) => {
         res.status(500).json({
             media: null,
             messaggio: "Al momento delle valutazioni non è possibile visualizzare la propria media, controllare al termine delle valutazioni."
+        })
+    }
+})
+
+//Middleware per scaricare la pagella del docente
+app.post('/scarica_pdf_valutazioni', async(req, res) => {
+    let nome = req.body.nome_docente
+    let cognome = req.body.cognome_docente
+    let valutazioni = req.body.valutazioni
+    let tk = req.body.token
+
+    const doc = new PDFDocument()
+	const filePath = `valutazioni_${nome}_${cognome}.pdf`
+
+    if(valutazioni_avviate === false){
+        try{
+            await connessione()
+            const dati = await TABELLA_UTENTI.find({ token: tk }).toArray()
+            
+            if(dati[0].token !== "" && dati[0].tipo === "D" || dati[0].tipo === "A" && dati.length !== 0){
+                doc
+                .fontSize(17)
+                .text('I.I.S. Denina sez. ”Rivoira”\n\n', {
+                    align: 'center',
+                    valign: 'center'
+                })
+
+                doc
+                .fontSize(25)
+                .text(`Risultati delle valutazioni ottenute per il docente ${nome} ${cognome}\n`, {
+                    align: 'center',
+                    valign: 'center'
+                })
+                
+                const pageWidth = doc.page.width
+                const logoWidth = 204
+                const xPositionLogo = (pageWidth - logoWidth) / 2
+
+                doc.image("./img/logoDenina.png", xPositionLogo, doc.y + 20, { width: logoWidth })
+
+                doc.addPage()
+
+                valutazioni.map((elem, i)=>{
+                    doc
+                    .fontSize(12.1)
+                    .text(
+                        `${i+1}) ${elem.domanda}\n\nMedia dei voti ottenuti alla domanda n${i+1}°: ${elem.media}
+                        `, 
+                        {
+                            align: 'left'
+                        }
+                    )
+                })
+
+                doc.end()
+
+                const writeStream = fs.createWriteStream(filePath)
+                doc.pipe(writeStream)
+
+                writeStream.on('finish', () => {
+                    res.download(filePath, (err) => {
+                        if (err) {
+                            res.json({
+                                messaggio: "Si è verificato un errore durante il download del PDF"
+                            });
+                        } else {
+                            fs.unlinkSync(filePath)
+                        }
+                    })
+                })
+            }
+        } catch(e){
+            res.json({
+                messaggio: "Si è verificato un errore durante la creazione del pdf"
+            })
+        } finally {
+            client.close()
+        }
+    } else {
+        res.json({
+            messaggio: "Al momento delle valutazioni non è possibile scaricare il pdf delle proprie valutazioni."
         })
     }
 })
