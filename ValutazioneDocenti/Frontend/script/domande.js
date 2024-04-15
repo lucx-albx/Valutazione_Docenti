@@ -105,7 +105,7 @@ const invia_valutazione =()=>{
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({nomeDocente, cognomeDocente, valutazioni, token})
+        body: JSON.stringify({nome_docente, cognome_docente, valutazioni, token})
     })
     .then(testo=>testo.json())
     .then((data)=>{
