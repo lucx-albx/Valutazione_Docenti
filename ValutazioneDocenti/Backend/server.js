@@ -144,8 +144,8 @@ function crittografia_sha256(psw) {
 
 //Middleware per fare l'accesso alla piattaforma
 app.post(LOGIN, async(req, res) => {
-    let email_utente = req.body.em_ut
-    let pass = req.body.psw
+    let email_utente = req.body.user
+    let pass = req.body.password
     let credenziali_corrette = false
     let tk = ''
 
@@ -391,8 +391,8 @@ app.post(GET_DOCENTI, async(req, res) => {
 
 //Middleware per inserire la valutazione di un docente nel db
 app.post(VALUTA_DOCENTE, async(req, res) => {
-    let cog_doc = req.body.cognomeDocente
-    let nom_doc = req.body.nomeDocente
+    let cog_doc = req.body.cognome_docente
+    let nom_doc = req.body.nome_docente
     let tk = req.body.token
     let valutazioni = req.body.valutazioni
     let i = 0
