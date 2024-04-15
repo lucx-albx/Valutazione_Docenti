@@ -25,6 +25,9 @@ const PORT = 3001
 const app = express()
 const QTADOM = process.env.NUMERO_DOMANDE
 const LOGIN = process.env.API_LOGIN
+const LOGOUT = process.env.API_LOGOUT
+const RUOLO_UTENTE = process.env.API_RUOLO_UTENTE
+const GET_NOME_COGNOME_DOCENTE = process.env.API_GET_NOME_COGNOME_DOCENTE
 const GET_DOCENTI_CLASSE = process.env.API_GET_DOCENTI_CLASSE
 const GET_DOMANDE = process.env.API_GET_DOMANDE
 const VALUTA_DOCENTE = process.env.API_VALUTA_DOCENTE
@@ -34,6 +37,7 @@ const CARICA_STUDENTI = process.env.API_CARICA_STUDENTI
 const CARICA_DOCENTI = process.env.API_CARICA_DOCENTI
 const GET_DOCENTI = process.env.API_GET_DOCENTI
 const WIEW_DOCENTE = process.env.API_WIEW_DOCENTE
+const SCARICA_PDF_VALUTAZIONI = process.env.API_SCARICA_PDF_VALUTAZIONI
 
 let domande = []
 let valutazioni_avviate = false
@@ -192,7 +196,7 @@ app.post(LOGIN, async(req, res) => {
 })
 
 //Middleware per sloggare l'utente dall'account
-app.post('/logout', async(req, res) => {
+app.post(LOGOUT, async(req, res) => {
     let tk = req.body.token
 
     try{
@@ -239,7 +243,7 @@ app.post('/logout', async(req, res) => {
 })
 
 //Middlware per controllare ruolo dell'utente
-app.post('/ruolo_utente', async(req, res) => {
+app.post(RUOLO_UTENTE, async(req, res) => {
     let tk = req.body.token
     let ruolo_utente = ""
 
@@ -272,7 +276,7 @@ app.post('/ruolo_utente', async(req, res) => {
 })
 
 //Middlware per ottenre il nome ed il cognome del docente
-app.post('/get_nome_cognome_docente', async(req, res) => {
+app.post(GET_NOME_COGNOME_DOCENTE, async(req, res) => {
     let tk = req.body.token
 
     try{
@@ -653,7 +657,7 @@ app.post(VIEW_DOCENTE, async(req, res) => {
 })
 
 //Middleware per scaricare la pagella del docente
-app.post('/scarica_pdf_valutazioni', async(req, res) => {
+app.post(SCARICA_PDF_VALUTAZIONI, async(req, res) => {
     let nome = req.body.nome_docente
     let cognome = req.body.cognome_docente
     let valutazioni = req.body.valutazioni
