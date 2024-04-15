@@ -1,7 +1,7 @@
 //! INIZIO BLOCCO VARIABLI E COSTANTI
 const LINK_SERVER = 'http://localhost:3001/'
 const API_LOGOUT = LINK_SERVER + 'logout'
-const API_DOCENTI = LINK_SERVER + 'get_docenti'
+const API_DOCENTI_CLASSE = LINK_SERVER + 'get_docenti_classe'
 const API_VIEWDOCENTE = LINK_SERVER + 'view_docente'
 const API_RUOLO = LINK_SERVER + 'ruolo_utente'
 const API_INIZIA_TERMINA_VALUTAZIONI = LINK_SERVER + 'start_stop_valutazioni'
@@ -142,7 +142,7 @@ const carica_docenti =()=>{
     let contenitore = document.querySelector(".carica_docenti")
     let token = localStorage.getItem('token')
 
-    fetch(API_DOCENTI, {
+    fetch(API_DOCENTI_CLASSE, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
