@@ -270,18 +270,20 @@ const carica_media_docenti =()=>{
             })
             .then(testo=>testo.json())
             .then((data)=>{
-                if(data.media != null){
-                    media_docente = data.media
+                media_docente = data.media
+
+                if(data.media !== null){
                     data.media.map((elem)=>{
                         cmedoc.innerHTML += card_viewdocente(elem.domanda, elem.media, nome_docente, cognome_docente)
                     })
+                } else {
+                    cmedoc.innerHTML += `${data.messaggio}`
                 }
             })
         } else {
-            cmedoc += `${data.messaggio}`
+            cmedoc.innerHTML += `${data.messaggio}`
         }
-    }) 
-
+    })
 }
 
 const scarica_pdf =()=>{
@@ -290,32 +292,37 @@ const scarica_pdf =()=>{
     let nome_docente = nm_doc
     let cognome_docente = cog_doc
 
-    fetch(API_SCARICA_PDF, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({nome_docente, cognome_docente, valutazioni, token})
-    })
-    .then(response => {
-        if (response.ok) {
-            return response.blob()
-        } else {
-            throw new Error('Errore durante il download del PDF')
-        }
-    })
-    .then(blob => {
-        const url = window.URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = `valutazioni_${nome_docente}_${cognome_docente}.pdf`
-        document.body.appendChild(a)
-        a.click()
-        window.URL.revokeObjectURL(url)
-    })
-    .catch((e) => {
-        alert('Si è verificato un errore durante il download del PDF');
-    })
+    if(valutazioni !== null){
+        fetch(API_SCARICA_PDF, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({nome_docente, cognome_docente, valutazioni, token})
+        })
+        .then((response) => {
+            console.log(response)
+            if (response.ok) {
+                return response.blob()
+            } else {
+                throw new Error('Errore durante il download del PDF')
+            }
+        })
+        .then(blob => {
+            const url = window.URL.createObjectURL(blob)
+            const a = document.createElement('a')
+            a.href = url
+            a.download = `valutazioni_${nome_docente}_${cognome_docente}.pdf`
+            document.body.appendChild(a)
+            a.click()
+            window.URL.revokeObjectURL(url)
+        })
+        .catch((e) => {
+            alert('Si è verificato un errore durante il download del PDF')
+        })
+    } else {
+        alert('Al momento delle valutazioni non è possibile scaricare la propria media, riprovare al termine delle valutazioni.')
+    }
 }
 //! FINE BLOCCO FUNZIONI PER IL DOCENTE
 

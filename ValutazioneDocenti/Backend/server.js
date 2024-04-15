@@ -36,7 +36,7 @@ const START_STOP_VALUTAZIONI = process.env.API_START_STOP_VALUTAZIONI
 const CARICA_STUDENTI = process.env.API_CARICA_STUDENTI
 const CARICA_DOCENTI = process.env.API_CARICA_DOCENTI
 const GET_DOCENTI = process.env.API_GET_DOCENTI
-const WIEW_DOCENTE = process.env.API_WIEW_DOCENTE
+const VIEW_DOCENTE = process.env.API_VIEW_DOCENTE
 const SCARICA_PDF_VALUTAZIONI = process.env.API_SCARICA_PDF_VALUTAZIONI
 
 let domande = []
@@ -314,7 +314,7 @@ app.post(GET_NOME_COGNOME_DOCENTE, async(req, res) => {
 })
 
 //Middlware per ottenre tutti i docenti che insegnano nella tua classe
-app.post(GET_DOCENTI, async(req, res) => {
+app.post(GET_DOCENTI_CLASSE, async(req, res) => {
     let tk = req.body.token
     let classe = ""
     let docente = []
@@ -649,7 +649,7 @@ app.post(VIEW_DOCENTE, async(req, res) => {
             client.close()
         }
     } else {
-        res.status(500).json({
+        res.json({
             media: null,
             messaggio: "Al momento delle valutazioni non è possibile visualizzare la propria media, controllare al termine delle valutazioni."
         })
@@ -699,7 +699,7 @@ app.post(SCARICA_PDF_VALUTAZIONI, async(req, res) => {
                     .fontSize(12.1)
                     .text(
                         `${i+1}) ${elem.domanda}\n\nMedia dei voti ottenuti alla domanda n${i+1}°: ${elem.media}
-                        `, 
+                        `,
                         {
                             align: 'left'
                         }
