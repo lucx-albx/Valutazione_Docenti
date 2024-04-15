@@ -21,15 +21,15 @@ const controlla_se_loggato =()=>{
 
 //! INIZIO BLOCCO FUNZIONI PER L'ACCESSO
 const accedi =()=>{
-    let em_ut = document.querySelector('#em_ut').value
-    let psw = document.querySelector('#psw').value
+    let user = document.querySelector('#em_ut').value
+    let password = document.querySelector('#psw').value
 
     fetch(API_LOGIN, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({em_ut, psw})
+        body: JSON.stringify({user, password})
     })
     .then(testo=>testo.json())
     .then((data)=>{
