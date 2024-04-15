@@ -23,7 +23,17 @@ const TABELLA_VOTI_DOCENTI = client.db("valutazioneDocenti").collection("votiDoc
 
 const PORT = 3001
 const app = express()
-const QTADOM = process.env.NUMERO_DOMANDE 
+const QTADOM = process.env.NUMERO_DOMANDE
+const LOGIN = process.env.API_LOGIN
+const GET_DOCENTI_CLASSE = process.env.API_GET_DOCENTI_CLASSE
+const GET_DOMANDE = process.env.API_GET_DOMANDE
+const VALUTA_DOCENTE = process.env.API_VALUTA_DOCENTE
+const ADMIN_CONSOLE = process.env.API_ADMIN_CONSOLE
+const START_STOP_VALUTAZIONI = process.env.API_START_STOP_VALUTAZIONI
+const CARICA_STUDENTI = process.env.API_CARICA_STUDENTI
+const CARICA_DOCENTI = process.env.API_CARICA_DOCENTI
+const GET_DOCENTI = process.env.API_GET_DOCENTI
+const WIEW_DOCENTE = process.env.API_WIEW_DOCENTE
 
 let domande = []
 let valutazioni_avviate = false
@@ -129,7 +139,7 @@ function crittografia_sha256(psw) {
 }
 
 //Middleware per fare l'accesso alla piattaforma
-app.post('/login', async(req, res) => {
+app.post(LOGIN, async(req, res) => {
     let email_utente = req.body.em_ut
     let pass = req.body.psw
     let credenziali_corrette = false
@@ -300,7 +310,7 @@ app.post('/get_nome_cognome_docente', async(req, res) => {
 })
 
 //Middlware per ottenre tutti i docenti che insegnano nella tua classe
-app.post('/get_docenti', async(req, res) => {
+app.post(GET_DOCENTI, async(req, res) => {
     let tk = req.body.token
     let classe = ""
     let docente = []
@@ -376,7 +386,7 @@ app.post('/get_docenti', async(req, res) => {
 })
 
 //Middleware per inserire la valutazione di un docente nel db
-app.post('/valuta_docente', async(req, res) => {
+app.post(VALUTA_DOCENTE, async(req, res) => {
     let cog_doc = req.body.cognomeDocente
     let nom_doc = req.body.nomeDocente
     let tk = req.body.token
@@ -480,7 +490,7 @@ app.post('/valuta_docente', async(req, res) => {
 })
 
 //Middleware per caricare i bottoni per la console dell'admin
-app.post('/admin_console', async(req, res) => {
+app.post(ADMIN_CONSOLE, async(req, res) => {
     let tk = req.body.token
 
     try{
@@ -520,7 +530,7 @@ app.post('/admin_console', async(req, res) => {
 })
 
 //Middleware per iniziare il periodo di valutazione
-app.post('/start_stop_valutazioni', async(req, res) => {
+app.post(START_STOP_VALUTAZIONI, async(req, res) => {
     let tk = req.body.token
 
     try{
@@ -555,7 +565,7 @@ app.post('/start_stop_valutazioni', async(req, res) => {
 })
 
 //Middleware per ottienre tutte le domanda da fare al momento della valutazione del singolo docente
-app.get('/get_domande', async(req, res) => {
+app.get(GET_DOMANDE, async(req, res) => {
     let array_domande = []
 
     try{
@@ -580,7 +590,7 @@ app.get('/get_domande', async(req, res) => {
 })
 
 //con la viewDocente puoi visualizzare le info sui docenti
-app.post('/view_docente', async(req, res) => {
+app.post(VIEW_DOCENTE, async(req, res) => {
     let nome = req.body.nome_docente
     let cognome = req.body.cognome_docente
     let tk = req.body.token
