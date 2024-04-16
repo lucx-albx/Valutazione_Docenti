@@ -511,20 +511,65 @@ app.post(ADMIN_CONSOLE, async(req, res) => {
                         urlEndpoint:"carica_docenti"
                     },
                     {
-                        button: "Visualizza Docente",
-                        urlEndpoint: "visualizza_docente"
-                    },
-                    {
                         button: "Start/Stop Valutazioni",
                         urlEndpoint: "start_stop_valutazioni"
+                    },
+                    {
+                        status: valutazioni_avviate
                     }
                 ]
             )
+        } else {
+            res.json({
+                domande: null,
+                messaggio: "Non hai il permesso per eseguire questo endpoint"
+            })
         }
     } catch (e) {
         res.status(500).json({
             domande: null,
             messaggio: "Si è verificato un errore nel server."
+        })
+    } finally {
+        client.close()
+    }
+})
+
+app.post(GET_DOCENTI, async(req, res) => {
+    let tk = req.body.token
+
+    try {
+        await connessione()
+        const dati = await TABELLA_UTENTI.find({ token: tk }).toArray()
+
+        if(dati[0].token !== "" && dati.length !== 0){
+            const docenti = await TABELLA_UTENTI.find({ tipo: "D" }).toArray()
+            const risultato = []
+
+            docenti.forEach((docente) => {
+                const { nome, cognome, email } = docente
+
+                risultato.push({
+                    nome,
+                    cognome,
+                    email,
+                })
+            })
+
+            res.json({
+                docenti: risultato,
+                messaggio: "Dati dei docenti ottenuti con successo!",
+            })
+        } else {
+            res.json({
+                docenti: null,
+                messaggio: "Non hai il permesso per eseguire questo endpoint"
+            })
+        }
+    } catch (error) {
+        res.status(500).json({
+            docenti: null,
+            messaggio: "Si è verificato un errore durante il recupero dei dati dei docenti.",
         })
     } finally {
         client.close()
@@ -772,40 +817,67 @@ app.post(SCARICA_PDF_VALUTAZIONI, async(req, res) => {
             const dati = await TABELLA_UTENTI.find({ token: tk }).toArray()
             
             if(dati[0].token !== "" && dati[0].tipo === "D" || dati[0].tipo === "A" && dati.length !== 0){
-                doc
-                .fontSize(17)
-                .text('I.I.S. Denina sez. ”Rivoira”\n\n', {
-                    align: 'center',
-                    valign: 'center'
-                })
+                const imageWidth = 100
 
-                doc
-                .fontSize(25)
-                .text(`Risultati delle valutazioni ottenute per il docente ${nome} ${cognome}\n`, {
-                    align: 'center',
-                    valign: 'center'
+                doc.image("./img/logoDenina.png", {
+                    align: 'right',
+                    valign: 'center',
+                    width: imageWidth
                 })
                 
-                const pageWidth = doc.page.width
-                const logoWidth = 204
-                const xPositionLogo = (pageWidth - logoWidth) / 2
-
-                doc.image("./img/logoDenina.png", xPositionLogo, doc.y + 20, { width: logoWidth })
+                const textX = doc.page.width - imageWidth - 330
+                const textY = doc.y
+                
+                doc
+                    .fontSize(13)
+                    .font('Times-Bold')
+                    .text('ISTITUTO ISTRUZIONE SUPERIORE“DENINA”SALUZZO\n', textX, textY, {
+                        align: 'center',
+                        valign: 'center'
+                    });
+                
+                doc
+                    .fontSize(12)
+                    .font('Times-Roman')
+                    .text(`Codice meccanografico: CNISO14001  TEL: 0175/43625\nCodice fiscale: 94033200042   email: CNIS014001@istruzione.it\n\n“C. Denina” Via della Chiesa, 21 -12037 Saluzzo (CN) \n “S. Pellico” Via della Croce, 54/A - 12037 Saluzzo (CN)\n“G. Rivoira” Via IV Novembre - 12039 Verzuolo (CN) \n`, textX, textY + 25, {
+                        align: 'center',
+                        valign: 'center'
+                    });
+                doc
+                    .fontSize(20)
+                    .font('Times-Bold')
+                    .text(`Risultati delle valutazioni ottenute per il docente ${nome} ${cognome}:\n`, 50, textY + 150, {
+                        align: 'center',
+                        valign: 'center'
+                    });
 
                 doc.addPage()
+                
+                const X = 0; 
+                const Y = doc.y; 
 
                 valutazioni.map((elem, i)=>{
                     doc
+                    .font('Times-Bold')
                     .fontSize(12.1)
                     .text(
-                        `${i+1}) ${elem.domanda}\n\nMedia dei voti ottenuti alla domanda n${i+1}°: ${elem.media}
+                        `${i+1}) ${elem.domanda}
+                        `,
+                        {
+                            align: 'left'
+                        }
+                    )
+                    doc
+                    .font('Times-Roman')
+                    .fontSize(12.1)
+                    .text(
+                        `Media dei voti ottenuti alla domanda n${i+1}°: ${elem.media}
                         `,
                         {
                             align: 'left'
                         }
                     )
                 })
-
                 doc.end()
 
                 const writeStream = fs.createWriteStream(filePath)

@@ -1,9 +1,11 @@
 //! INIZIO BLOCCO VARIABLI E COSTANTI
 const LINK_SERVER = 'http://localhost:3001/'
 const API_LOGOUT = LINK_SERVER + 'logout'
+const API_ADMIN_CONSOLE = LINK_SERVER + 'admin_console'
 const API_DOCENTI_CLASSE = LINK_SERVER + 'get_docenti_classe'
 const API_VIEWDOCENTE = LINK_SERVER + 'view_docente'
 const API_RUOLO = LINK_SERVER + 'ruolo_utente'
+const API_GET_DOCENTI = LINK_SERVER + 'get_docenti'
 const API_CARICA_STUDENTI = LINK_SERVER + 'carica_studenti'
 const API_CARICA_DOCENTI = LINK_SERVER + 'carica_docenti'
 const API_INIZIA_TERMINA_VALUTAZIONI = LINK_SERVER + 'start_stop_valutazioni'
@@ -55,19 +57,20 @@ const controlla_ruolo_utente_e_carica_interfaccia =()=>{
 
                 <h3>Gestione database</h3>
 
-                <h3>Viewdocente </h3>
+                <div class="pbc">
+                    <select id="nome_select">
+                    </select>
 
-                <input type="text" value="Manuela" placeholder="Inserisci nome docente..." id="nom_doc">
-                <input type="text" value="Dalbesio" placeholder="Inserisci cognome docente..." id="cog_doc">
+                    <select id="cognome_select">
+                    </select>
 
-                <button onclick="viewdocente()">Cerca</button>
+                    <button onclick="viewdocente()">Cerca</button>
+                </div>
 
                 <br>
                 <br>
 
-                <button onclick="admin_carica_studenti()">Carica studenti</button>
-                <button onclick="admin_carica_docenti()">Carica docenti</button>
-                <button onclick="inizia_termina_val()">Inizia / termina valutazioni</button>
+                <div class="console pbc"></div>
 
                 <br>
 
@@ -77,6 +80,8 @@ const controlla_ruolo_utente_e_carica_interfaccia =()=>{
 
                 <button class="mt-1" onclick="logout()">Logout</button>
             `
+            carica_docenti_nella_select()
+            AdminConsole()
         } else if(data.tipo === 'D'){
             container_interface.innerHTML +=
             `
@@ -201,8 +206,8 @@ const card_viewdocente =(domanda, media, nome, cognome)=>{
 }
 
 const viewdocente =()=>{
-    let nome_docente = document.querySelector("#nom_doc").value
-    let cognome_docente = document.querySelector("#cog_doc").value
+    let nome_docente = document.querySelector("#nome_select").value
+    let cognome_docente = document.querySelector("#cognome_select").value
     let token = localStorage.getItem("token")
     let contenitore_viewdocente = document.querySelector(".cont_media_docente")
 
@@ -224,6 +229,31 @@ const viewdocente =()=>{
             })
         }
     })
+}
+
+const carica_docenti_nella_select =()=>{
+    let token = localStorage.getItem('token')
+    let select_nome = document.querySelector("#nome_select")
+    let select_cogome = document.querySelector("#cognome_select")
+
+    fetch(API_GET_DOCENTI, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({token})
+    })
+    .then(testo=>testo.json())
+    .then((data)=>{
+        if(data.docenti !== null){
+            data.docenti.map((elem, i)=>{
+                select_nome.innerHTML += `<option> ${elem.nome} </option>`
+                select_cogome.innerHTML += `<option> ${elem.cognome} </option>`
+            })
+        } else {
+            alert("Errore, ricaricare pagina")
+        }
+    }) 
 }
 
 const admin_carica_studenti =()=>{
@@ -258,8 +288,44 @@ const admin_carica_docenti =()=>{
     }) 
 }
 
+const AdminConsole = ()=>{
+    let token = localStorage.getItem('token')
+    let contenitore_console = document.querySelector(".console")
+    let array_funzioni = [admin_carica_studenti, admin_carica_docenti, inizia_termina_val]
+
+    fetch(API_ADMIN_CONSOLE, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({token})
+    })
+    .then(testo=>testo.json())
+    .then((data)=>{
+        data.forEach((elem, i) => {
+            if(data.length - 1 !== i){
+                let buttonId = elem.button === 'Start/Stop Valutazioni' ? 'Valutazione' : 'btn' + (i+1)
+                let button = document.createElement('button')
+                button.textContent = elem.button
+                button.onclick = array_funzioni[i]
+                button.id = buttonId
+                contenitore_console.appendChild(button)
+            } else {
+                let buttonavviate = document.querySelector("#Valutazione")
+
+                if(elem.status === true){
+                    buttonavviate.textContent = "Termina Valutazioni" 
+                } else {
+                    buttonavviate.textContent = "Inizia Valutazioni"
+                }
+            }
+        })
+    }) 
+}
+
 const inizia_termina_val =()=>{
     let token = localStorage.getItem('token')
+    let button_valuta = document.querySelector("#Valutazione")
 
     fetch(API_INIZIA_TERMINA_VALUTAZIONI, {
         method: 'POST',
@@ -270,7 +336,11 @@ const inizia_termina_val =()=>{
     })
     .then(testo=>testo.json())
     .then((data)=>{
-        alert(data.messaggio)
+        if (data.valuta === true){
+            button_valuta.innerHTML = "Termina Valutazioni"
+        } else {
+            button_valuta.innerHTML = "Inizia Valutazioni"
+        }
     }) 
 }
 //! FINE BLOCCO FUNZIONI PER L'ADMIN
@@ -337,7 +407,6 @@ const scarica_pdf =()=>{
             body: JSON.stringify({nome_docente, cognome_docente, valutazioni, token})
         })
         .then((response) => {
-            console.log(response)
             if (response.ok) {
                 return response.blob()
             } else {

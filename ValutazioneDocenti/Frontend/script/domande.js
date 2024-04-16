@@ -95,8 +95,8 @@ const invia_valutazione =()=>{
     let voti = ottieni_voti()
     let id_dom = id_domande(voti.length)
 
-    let nomeDocente = localStorage.nome_docente
-    let cognomeDocente = localStorage.cognome_docente
+    let nome_docente = localStorage.nome_docente
+    let cognome_docente = localStorage.cognome_docente
     let valutazioni = crea_valutazioni(voti, id_dom)
     let token = localStorage.getItem("token")
 

@@ -38,7 +38,24 @@
     margin-top: 10px;
 }
 
+.pbc{
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    align-items: center;
+}
+
 input{
+    padding: 9px;
+    border: 1px solid black;
+    border-radius: 5px;
+    min-width: 220px;
+
+    outline: none!important;
+}
+
+
+select{
     padding: 9px;
     border: 1px solid black;
     border-radius: 5px;
@@ -48,7 +65,7 @@ input{
 }
 
 button{
-    min-width: 260px;
+    min-width: 240px;
     background-color: blue;
     border-radius: 5px;
     padding: 10px;
