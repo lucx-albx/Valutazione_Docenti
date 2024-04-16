@@ -2,11 +2,9 @@
 //!npm install express
 //!npm install cors
 //!npm install mongodb
-//!npm install dotenv
 //!npm install crypto
 //!npm install pdfkit
 //!npm install fs
-require('dotenv').config()
 const express = require('express')
 const cors = require("cors")
 const { MongoClient } = require("mongodb")
@@ -23,21 +21,21 @@ const TABELLA_VOTI_DOCENTI = client.db("valutazioneDocenti").collection("votiDoc
 
 const PORT = 3001
 const app = express()
-const QTADOM = process.env.NUMERO_DOMANDE
-const LOGIN = process.env.API_LOGIN
-const LOGOUT = process.env.API_LOGOUT
-const RUOLO_UTENTE = process.env.API_RUOLO_UTENTE
-const GET_NOME_COGNOME_DOCENTE = process.env.API_GET_NOME_COGNOME_DOCENTE
-const GET_DOCENTI_CLASSE = process.env.API_GET_DOCENTI_CLASSE
-const GET_DOMANDE = process.env.API_GET_DOMANDE
-const VALUTA_DOCENTE = process.env.API_VALUTA_DOCENTE
-const ADMIN_CONSOLE = process.env.API_ADMIN_CONSOLE
-const START_STOP_VALUTAZIONI = process.env.API_START_STOP_VALUTAZIONI
-const CARICA_STUDENTI = process.env.API_CARICA_STUDENTI
-const CARICA_DOCENTI = process.env.API_CARICA_DOCENTI
-const GET_DOCENTI = process.env.API_GET_DOCENTI
-const VIEW_DOCENTE = process.env.API_VIEW_DOCENTE
-const SCARICA_PDF_VALUTAZIONI = process.env.API_SCARICA_PDF_VALUTAZIONI
+const QTADOM = 10
+const LOGIN = "/login"
+const LOGOUT = "/logout"
+const RUOLO_UTENTE = "/ruolo_utente"
+const GET_NOME_COGNOME_DOCENTE = "/get_nome_cognome_docente"
+const GET_DOCENTI_CLASSE = "/get_docenti_classe"
+const GET_DOMANDE = "/get_domande"
+const VALUTA_DOCENTE = "/valuta_docente"
+const ADMIN_CONSOLE = "/admin_console"
+const START_STOP_VALUTAZIONI = "/start_stop_valutazioni"
+const CARICA_STUDENTI = "/carica_studenti"
+const CARICA_DOCENTI = "/carica_docenti"
+const GET_DOCENTI = "/get_docenti"
+const VIEW_DOCENTE = "/view_docente"
+const SCARICA_PDF_VALUTAZIONI = "/scarica_pdf_valutazioni"
 
 let domande = []
 let valutazioni_avviate = false
@@ -534,73 +532,105 @@ app.post(ADMIN_CONSOLE, async(req, res) => {
 })
 
 //Middleware per caricare gli studenti da file system tramite un json
-app.post(CARICA_STUDENTI, (req, res) => {
-    connessione();
+app.post(CARICA_STUDENTI, async(req, res)  => {
+    let tk = req.body.token
 
-    const collect = client.db("valutazioneDocenti").collection("utenti");
+    try{
+        await connessione()
+        const dati = await TABELLA_UTENTI.find({ token: tk }).toArray()
 
-    // PERCORSO FILE
-    const PERCORSOFILE = './json/utenti.json';
+        if(dati[0].token !== "" && dati.length !== 0){
+            // PERCORSO FILE
+            const PERCORSOFILE = './json/utenti.json'
 
-    fs.readFile(PERCORSOFILE, 'utf8', (err, data) => {
-        if (err) {
-            console.error('Errore nella lettura del file:', err);
-            return;
-        }
-    
-        try {
-            // Converti il contenuto del file JSON in un oggetto JavaScript
-            const json = JSON.parse(data);
-    
-            // Cicla sull'array di oggetti
-            json.forEach(elemento => {
-                // Se il tipo è 'S', inserisce l'elemento nel db
-                if (elemento.tipo === 'S') {
-                    // console.log(elemento)
-                    collect.insertOne(elemento);
+            fs.readFile(PERCORSOFILE, 'utf8', async (err, data) => {
+                await connessione()
+
+                if (err) {
+                    console.error('Errore nella lettura del file:', err)
+                    return
                 }
-            });
-        } catch (error) {
-            console.error('Errore nella conversione del JSON:', error);
-        }
-    });
 
-    res.json({messaggio: "Studenti caricati con successo"})
-});
+                let studenti = []
+
+                try {
+                    // Converti il contenuto del file JSON in un oggetto JavaScript
+                    const json = JSON.parse(data);
+                    
+                    // Cicla sull'array di oggetti
+                    json.forEach(elemento => {
+                        // Se il tipo è 'S', inserisce l'elemento nel db
+                        if (elemento.tipo === 'S') {
+                            studenti.push(elemento)
+                        }
+                    })
+
+                    await TABELLA_UTENTI.insertMany(studenti)
+                } catch (error) {
+                    console.error('Errore nella conversione del JSON:', error)
+                }
+            })
+
+            res.json({messaggio: "Studenti caricati con successo"})
+        }
+    } catch (e) {
+        res.status(500).json({
+            domande: null,
+            messaggio: "Si è verificato un errore nel server."
+        })
+    } finally {
+        client.close()
+    }
+})
 
 //Middleware per caricare i docenti da file system tramite un json
-app.post(CARICA_DOCENTI, (req, res) => {
-    connessione();
+app.post(CARICA_DOCENTI, async(req, res) => {
+    let tk = req.body.token
 
-    const collect = client.db("valutazioneDocenti").collection("professori");
+    try{
+        await connessione()
+        const dati = await TABELLA_UTENTI.find({ token: tk }).toArray()
 
-    // PERCORSO FILE
-    const PERCORSOFILE = './json/utenti.json';
+        if(dati[0].token !== "" && dati.length !== 0){
+            // PERCORSO FILE
+            const PERCORSOFILE = './json/utenti.json';
 
-    fs.readFile(PERCORSOFILE, 'utf8', (err, data) => {
-        if (err) {
-            console.error('Errore nella lettura del file:', err);
-            return;
-        }
-    
-        try {
-            // Converti il contenuto del file JSON in un oggetto JavaScript
-            const json = JSON.parse(data);
-    
-            // Cicla sull'array di oggetti
-            json.forEach(elemento => {
-                // Se il tipo è 'D', inserisce l'elemento nel db
-                if (elemento.tipo === 'D') {
-                    // console.log(elemento)
-                    collect.insertOne(elemento);
+            fs.readFile(PERCORSOFILE, 'utf8', async (err, data) => {
+                await connessione()
+                if (err) {
+                    console.error('Errore nella lettura del file:', err);
+                    return
                 }
-            });
-        } catch (error) {
-            console.error('Errore nella conversione del JSON:', error);
-        }
-    });
 
-    res.json({messaggio: "Professori caricati con successo"})
+                let docenti = []
+
+                try {
+                    // Converti il contenuto del file JSON in un oggetto JavaScript
+                    const json = JSON.parse(data);
+            
+                    // Cicla sull'array di oggetti
+                    json.forEach(elemento => {
+                        // Se il tipo è 'D', inserisce l'elemento nel db
+                        if (elemento.tipo === 'D') {
+                            docenti.push(elemento)
+                        }
+                    })
+                    await TABELLA_UTENTI.insertMany(docenti)
+                } catch (error) {
+                    console.error('Errore nella conversione del JSON:', error)
+                }
+            })
+
+            res.json({messaggio: "Docenti caricati con successo"})
+        }
+    } catch (e) {
+        res.status(500).json({
+            domande: null,
+            messaggio: "Si è verificato un errore nel server."
+        })
+    } finally {
+        client.close()
+    }
 });
 
 //Middleware per iniziare il periodo di valutazione
