@@ -4,6 +4,8 @@ const API_LOGOUT = LINK_SERVER + 'logout'
 const API_DOCENTI_CLASSE = LINK_SERVER + 'get_docenti_classe'
 const API_VIEWDOCENTE = LINK_SERVER + 'view_docente'
 const API_RUOLO = LINK_SERVER + 'ruolo_utente'
+const API_CARICA_STUDENTI = LINK_SERVER + 'carica_studenti'
+const API_CARICA_DOCENTI = LINK_SERVER + 'carica_docenti'
 const API_INIZIA_TERMINA_VALUTAZIONI = LINK_SERVER + 'start_stop_valutazioni'
 const API_NOME_COGNOME_DOCENTE = LINK_SERVER + 'get_nome_cognome_docente'
 const API_SCARICA_PDF = LINK_SERVER + 'scarica_pdf_valutazioni'
@@ -63,6 +65,8 @@ const controlla_ruolo_utente_e_carica_interfaccia =()=>{
                 <br>
                 <br>
 
+                <button onclick="admin_carica_studenti()">Carica studenti</button>
+                <button onclick="admin_carica_docenti()">Carica docenti</button>
                 <button onclick="inizia_termina_val()">Inizia / termina valutazioni</button>
 
                 <br>
@@ -220,6 +224,38 @@ const viewdocente =()=>{
             })
         }
     })
+}
+
+const admin_carica_studenti =()=>{
+    let token = localStorage.getItem('token')
+
+    fetch(API_CARICA_STUDENTI, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({token})
+    })
+    .then(testo=>testo.json())
+    .then((data)=>{
+        alert(data.messaggio)
+    }) 
+}
+
+const admin_carica_docenti =()=>{
+    let token = localStorage.getItem('token')
+
+    fetch(API_CARICA_DOCENTI, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({token})
+    })
+    .then(testo=>testo.json())
+    .then((data)=>{
+        alert(data.messaggio)
+    }) 
 }
 
 const inizia_termina_val =()=>{

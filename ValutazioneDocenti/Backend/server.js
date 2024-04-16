@@ -533,6 +533,76 @@ app.post(ADMIN_CONSOLE, async(req, res) => {
     }
 })
 
+//Middleware per caricare gli studenti da file system tramite un json
+app.post(CARICA_STUDENTI, (req, res) => {
+    connessione();
+
+    const collect = client.db("valutazioneDocenti").collection("utenti");
+
+    // PERCORSO FILE
+    const PERCORSOFILE = './json/utenti.json';
+
+    fs.readFile(PERCORSOFILE, 'utf8', (err, data) => {
+        if (err) {
+            console.error('Errore nella lettura del file:', err);
+            return;
+        }
+    
+        try {
+            // Converti il contenuto del file JSON in un oggetto JavaScript
+            const json = JSON.parse(data);
+    
+            // Cicla sull'array di oggetti
+            json.forEach(elemento => {
+                // Se il tipo è 'S', inserisce l'elemento nel db
+                if (elemento.tipo === 'S') {
+                    // console.log(elemento)
+                    collect.insertOne(elemento);
+                }
+            });
+        } catch (error) {
+            console.error('Errore nella conversione del JSON:', error);
+        }
+    });
+
+    res.json({messaggio: "Studenti caricati con successo"})
+});
+
+//Middleware per caricare i docenti da file system tramite un json
+app.post(CARICA_DOCENTI, (req, res) => {
+    connessione();
+
+    const collect = client.db("valutazioneDocenti").collection("professori");
+
+    // PERCORSO FILE
+    const PERCORSOFILE = './json/utenti.json';
+
+    fs.readFile(PERCORSOFILE, 'utf8', (err, data) => {
+        if (err) {
+            console.error('Errore nella lettura del file:', err);
+            return;
+        }
+    
+        try {
+            // Converti il contenuto del file JSON in un oggetto JavaScript
+            const json = JSON.parse(data);
+    
+            // Cicla sull'array di oggetti
+            json.forEach(elemento => {
+                // Se il tipo è 'D', inserisce l'elemento nel db
+                if (elemento.tipo === 'D') {
+                    // console.log(elemento)
+                    collect.insertOne(elemento);
+                }
+            });
+        } catch (error) {
+            console.error('Errore nella conversione del JSON:', error);
+        }
+    });
+
+    res.json({messaggio: "Professori caricati con successo"})
+});
+
 //Middleware per iniziare il periodo di valutazione
 app.post(START_STOP_VALUTAZIONI, async(req, res) => {
     let tk = req.body.token
