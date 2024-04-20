@@ -1,6 +1,7 @@
 //! INIZIO BLOCCO VARIABLI E COSTANTI
 const LINK_SERVER = 'http://localhost:3001/'
 const API_LOGOUT = LINK_SERVER + 'logout'
+const API_TOKEN_VALIDO = LINK_SERVER + 'token_valido'
 const API_ADMIN_CONSOLE = LINK_SERVER + 'admin_console'
 const API_DOCENTI_CLASSE = LINK_SERVER + 'get_docenti_classe'
 const API_VIEWDOCENTE = LINK_SERVER + 'view_docente'
@@ -100,6 +101,8 @@ const controlla_ruolo_utente_e_carica_interfaccia =()=>{
 
             carica_media_docenti()
         }
+
+        is_valid_token()
     })
 }
 
@@ -108,6 +111,7 @@ const controlla_se_loggato =()=>{
 
     if(log === 'false' || log === null){
         window.location.href = './index.html'
+        localStorage.setItem("token", "null")
     }        
 }
 
@@ -123,13 +127,34 @@ const logout =()=>{
     })
     .then(testo=>testo.json())
     .then((data)=>{
-        if(data.successo === true){
-            localStorage.setItem('token', 'null')
-            localStorage.setItem('loggato', 'false')
+        localStorage.setItem('token', 'null')
+        localStorage.setItem('loggato', 'false')
 
+        window.location.href = './index.html'
+    })   
+}
+
+const is_valid_token =()=>{
+    let token = localStorage.getItem('token')
+
+    console.log("ciao")
+
+    fetch(API_TOKEN_VALIDO, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({token})
+    })
+    .then(testo=>testo.json())
+    .then((data)=>{
+        console.log(data.valido)
+        if(data.valido === false){
+            localStorage.setItem("token", "null")
+            localStorage.setItem("loggato", "false")
             window.location.href = './index.html'
         }
-    })   
+    })
 }
 //! FINE BLOCCO FUNZIONI GENERALI
 
@@ -171,10 +196,14 @@ const carica_docenti =()=>{
         } else {
             contenitore.innerHTML += "<b> Il periodo per l'inserimento delle valutazioni non è ancora iniziato.<b>"
         }
+
+        is_valid_token()
     })
 }
 
 const carica_pagina_domande =(nom, cog)=>{
+    is_valid_token()
+
     localStorage.setItem('nome_docente', nom)
     localStorage.setItem('cognome_docente', cog)
 
@@ -228,6 +257,8 @@ const viewdocente =()=>{
                 contenitore_viewdocente.innerHTML += card_viewdocente(elem.domanda, elem.media, nome_docente, cognome_docente)
             })
         }
+
+        is_valid_token()
     })
 }
 
@@ -253,6 +284,8 @@ const carica_docenti_nella_select =()=>{
         } else {
             alert("Errore, ricaricare pagina")
         }
+
+        is_valid_token()
     }) 
 }
 
@@ -269,6 +302,7 @@ const admin_carica_studenti =()=>{
     .then(testo=>testo.json())
     .then((data)=>{
         alert(data.messaggio)
+        is_valid_token()
     }) 
 }
 
@@ -285,10 +319,11 @@ const admin_carica_docenti =()=>{
     .then(testo=>testo.json())
     .then((data)=>{
         alert(data.messaggio)
+        is_valid_token()
     }) 
 }
 
-const AdminConsole = ()=>{
+const AdminConsole =()=>{
     let token = localStorage.getItem('token')
     let contenitore_console = document.querySelector(".console")
     let array_funzioni = [admin_carica_studenti, admin_carica_docenti, inizia_termina_val]
@@ -302,24 +337,26 @@ const AdminConsole = ()=>{
     })
     .then(testo=>testo.json())
     .then((data)=>{
-        data.forEach((elem, i) => {
-            if(data.length - 1 !== i){
-                let buttonId = elem.button === 'Start/Stop Valutazioni' ? 'Valutazione' : 'btn' + (i+1)
-                let button = document.createElement('button')
-                button.textContent = elem.button
-                button.onclick = array_funzioni[i]
-                button.id = buttonId
-                contenitore_console.appendChild(button)
-            } else {
-                let buttonavviate = document.querySelector("#Valutazione")
-
-                if(elem.status === true){
-                    buttonavviate.textContent = "Termina Valutazioni" 
+        if(data.length !== undefined){
+            data.forEach((elem, i) => {
+                if(data.length - 1 !== i){
+                    let buttonId = elem.button === 'Start/Stop Valutazioni' ? 'Valutazione' : 'btn' + (i+1)
+                    let button = document.createElement('button')
+                    button.textContent = elem.button
+                    button.onclick = array_funzioni[i]
+                    button.id = buttonId
+                    contenitore_console.appendChild(button)
                 } else {
-                    buttonavviate.textContent = "Inizia Valutazioni"
+                    let buttonavviate = document.querySelector("#Valutazione")
+
+                    if(elem.status === true){
+                        buttonavviate.textContent = "Termina Valutazioni" 
+                    } else {
+                        buttonavviate.textContent = "Inizia Valutazioni"
+                    }
                 }
-            }
-        })
+            })
+        }
     }) 
 }
 
@@ -341,6 +378,8 @@ const inizia_termina_val =()=>{
         } else {
             button_valuta.innerHTML = "Inizia Valutazioni"
         }
+
+        is_valid_token()
     }) 
 }
 //! FINE BLOCCO FUNZIONI PER L'ADMIN
@@ -385,6 +424,8 @@ const carica_media_docenti =()=>{
                 } else {
                     cmedoc.innerHTML += `${data.messaggio}`
                 }
+
+                is_valid_token()
             })
         } else {
             cmedoc.innerHTML += `${data.messaggio}`
@@ -421,6 +462,8 @@ const scarica_pdf =()=>{
             document.body.appendChild(a)
             a.click()
             window.URL.revokeObjectURL(url)
+
+            is_valid_token()
         })
         .catch((e) => {
             alert('Si è verificato un errore durante il download del PDF')
@@ -435,7 +478,7 @@ const scarica_pdf =()=>{
 
 //! INIZIO BLOCCO DELLE FUNZIONI CHE SI ESEGUONO AL CARICARSI DELLA PAGINA
 window.addEventListener('load', 
-    controlla_se_loggato(),
-    controlla_ruolo_utente_e_carica_interfaccia()
+    controlla_ruolo_utente_e_carica_interfaccia(),
+    controlla_se_loggato()
 )
 //! FINE BLOCCO DELLE FUNZIONI CHE SI ESEGUONO AL CARICARSI DELLA PAGINA

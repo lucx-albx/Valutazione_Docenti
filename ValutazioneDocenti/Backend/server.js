@@ -11,6 +11,7 @@ const { MongoClient } = require("mongodb")
 const crypto = require('crypto')
 const PDFDocument = require('pdfkit')
 const fs = require('fs')
+const helmet = require('helmet')
 
 const client = new MongoClient("mongodb://localhost:27017") 
 
@@ -24,6 +25,7 @@ const app = express()
 const QTADOM = 10
 const LOGIN = "/login"
 const LOGOUT = "/logout"
+const TOKEN_VALIDO = "/token_valido"
 const RUOLO_UTENTE = "/ruolo_utente"
 const GET_NOME_COGNOME_DOCENTE = "/get_nome_cognome_docente"
 const GET_DOCENTI_CLASSE = "/get_docenti_classe"
@@ -44,6 +46,21 @@ app.use(express.json())
 app.use(express.urlencoded({
     extended: true
 }))
+
+app.use(helmet.contentSecurityPolicy())
+app.use(helmet.crossOriginEmbedderPolicy())
+app.use(helmet.crossOriginOpenerPolicy())
+app.use(helmet.crossOriginResourcePolicy())
+app.use(helmet.dnsPrefetchControl())
+app.use(helmet.frameguard())
+app.use(helmet.hidePoweredBy())
+app.use(helmet.hsts())
+app.use(helmet.ieNoOpen())
+app.use(helmet.noSniff())
+app.use(helmet.originAgentCluster())
+app.use(helmet.permittedCrossDomainPolicies())
+app.use(helmet.referrerPolicy())
+app.use(helmet.xssFilter())
 
 app.use(cors())
 app.options('*', cors())
@@ -183,7 +200,7 @@ app.post(LOGIN, async(req, res) => {
             )
         }
     } catch(e){
-        res.status(500).json(
+        res.json(
             {
                 messaggio: 'Errore nel server, riprovare'
             }
@@ -201,8 +218,8 @@ app.post(LOGOUT, async(req, res) => {
         await connessione()
         const dati_utenti = await TABELLA_UTENTI.find({token: tk}).toArray()
 
-        if(dati_utenti[0].token !== "" && dati_utenti.length !== 0){
-            if(dati_utenti.length !== 0){
+        if(dati_utenti.length !== 0){
+            if(dati_utenti[0].token !== ""){
                 await TABELLA_UTENTI.updateOne(
                     {token: tk},
                     {$set: {"token": ''}}
@@ -229,7 +246,7 @@ app.post(LOGOUT, async(req, res) => {
             })
         }
     } catch(e){
-        res.status(500).json(
+        res.json(
             {
                 successo: false,
                 messaggio: 'Errore nel server, riprovare'
@@ -237,6 +254,32 @@ app.post(LOGOUT, async(req, res) => {
         )
     } finally {
         client.close()
+    }
+})
+
+//Middleware per controllare la validità del token
+app.post(TOKEN_VALIDO, async(req, res) => {
+    let tk = req.body.token
+
+    try{
+        await connessione()
+        const dati_utenti = await TABELLA_UTENTI.find({token: tk}).toArray()
+
+        if(dati_utenti.length !== 0){
+            if(dati_utenti[0].token !== ""){
+                res.json({
+                    valido: true
+                })
+            }
+        } else {
+            res.json({
+                valido: false
+            })
+        }
+
+        await client.close()
+    } catch(e){
+        
     }
 })
 
@@ -281,19 +324,29 @@ app.post(GET_NOME_COGNOME_DOCENTE, async(req, res) => {
         await connessione()
         const dati_utenti = await TABELLA_UTENTI.find({token: tk}).toArray()
         
-        if(dati_utenti[0].tipo === "D" && dati_utenti[0].token !== "" && dati_utenti.length !== 0){
-            res.status(200).json(
-                {
-                    nome: dati_utenti[0].nome,
-                    cognome: dati_utenti[0].cognome,
-                    messaggio: 'Nome e cognome trovati!'
-                }
-            )
+        if(dati_utenti[0].tipo === "D" && dati_utenti.length !== 0){
+            if(dati_utenti[0].token !== ""){
+                res.status(200).json(
+                    {
+                        nome: dati_utenti[0].nome,
+                        cognome: dati_utenti[0].cognome,
+                        messaggio: 'Nome e cognome trovati!'
+                    }
+                )
+            } else {
+                res.status(200).json(
+                    {
+                        nome: null,
+                        cognome: null,
+                        messaggio: 'Non sei autorizzato'
+                    }
+                )
+            }
         } else {
             res.status(200).json(
                 {
-                    nome: dati_utenti[0].nome,
-                    cognome: dati_utenti[0].cognome,
+                    nome: null,
+                    cognome: null,
                     messaggio: 'Non sei autorizzato'
                 }
             )
@@ -325,43 +378,51 @@ app.post(GET_DOCENTI_CLASSE, async(req, res) => {
             
             const dati_singolo_utente = await TABELLA_UTENTI.find({token: tk}).toArray()
 
-            if(dati_singolo_utente[0].token !== "" && dati_singolo_utente.length !== 0){
-                if(dati_singolo_utente[0].tipo === "S"){
-                    classe = dati_singolo_utente[0].classe
-                    docenti_alunno_valutati = dati_singolo_utente[0].docenti_valutati
-                }
+            if(dati_singolo_utente.length !== 0){
+                if(dati_singolo_utente[0].token !== ""){
+                    if(dati_singolo_utente[0].tipo === "S"){
+                        classe = dati_singolo_utente[0].classe
+                        docenti_alunno_valutati = dati_singolo_utente[0].docenti_valutati
+                    }
 
-                const dati_utenti = await TABELLA_UTENTI.find().toArray()
+                    const dati_utenti = await TABELLA_UTENTI.find().toArray()
 
-                dati_utenti.map((elem)=>{
-                    if(elem.tipo === "D"){
-                        elem.classi_materie.map((info)=>{
-                            if(info.nome === classe){
-                                let materie = info.materie
+                    dati_utenti.map((elem)=>{
+                        if(elem.tipo === "D"){
+                            elem.classi_materie.map((info)=>{
+                                if(info.nome === classe){
+                                    let materie = info.materie
 
-                                let docente_gia_votato = docenti_alunno_valutati.some(obj => obj.nome_docente === elem.nome && obj.cognome_docente === elem.cognome)
-                            
-                                if(docente_gia_votato !== true){
-                                    docente.push(
-                                        {
-                                            nome: elem.nome,
-                                            cognome: elem.cognome,
-                                            materie: materie
-                                        }
-                                    )
+                                    let docente_gia_votato = docenti_alunno_valutati.some(obj => obj.nome_docente === elem.nome && obj.cognome_docente === elem.cognome)
+                                
+                                    if(docente_gia_votato !== true){
+                                        docente.push(
+                                            {
+                                                nome: elem.nome,
+                                                cognome: elem.cognome,
+                                                materie: materie
+                                            }
+                                        )
+                                    }
                                 }
-                            }
-                        })
-                    }
-                })
+                            })
+                        }
+                    })
 
-                res.status(200).json(
-                    {
-                        docenti: docente,
-                        messaggio: "I dati del docente sono stati estratti con successo!",
-                        valuta: true
-                    }
-                )
+                    res.status(200).json(
+                        {
+                            docenti: docente,
+                            messaggio: "I dati del docente sono stati estratti con successo!",
+                            valuta: true
+                        }
+                    )
+                } else {
+                    res.json({
+                        docenti: null,
+                        messaggio: "Autenticazione fallita",
+                        valuta: null
+                    })
+                }
             } else {
                 res.json({
                     docenti: null,
@@ -370,7 +431,7 @@ app.post(GET_DOCENTI_CLASSE, async(req, res) => {
                 })
             }
         } catch(e) {
-            res.status(500).json({
+            res.json({
                 docenti: null,
                 messaggio: "Si è verificato un errore durante il caricamento dei dati.",
                 valuta: null
@@ -403,82 +464,88 @@ app.post(VALUTA_DOCENTE, async(req, res) => {
 
             const dati = await TABELLA_UTENTI.find({ token: tk }).toArray()
 
-            if(dati[0].token !== "" && dati.length !== 0){
-                let classe = dati[0].classe
+            if(dati.length !== 0){
+                if(dati[0].token !== ""){
+                    let classe = dati[0].classe
 
-                //Filtri
-                let filtro_docente = {
-                    "cognomedocente": cog_doc,
-                    "nomedocente": nom_doc
-                }
-
-                let filtro_alunno = {
-                    "token": tk
-                }
-
-                //Strutture da impostare nel db
-                let struttura_iniziale = {
-                    "cognomedocente": cog_doc,
-                    "nomedocente": nom_doc,
-                    "valutazioni" : []
-                }
-
-                for(i = 0; i < valutazioni.length; i++){
-                    valutazioni_classe.push(
-                        {
-                            "classealunno": classe,
-                            "domanda": valutazioni[i].idDomanda,
-                            "voto": valutazioni[i].voto
-                        }
-                    )
-                }
-
-                valutazioni_classe.map((elem, i)=>{
-                    struttura_iniziale.valutazioni.push(elem);
-                })
-
-                //Inserimento dati nella tabella delle valutazioni dei docenti
-                await connessione()
-
-                const datiVoti = await TABELLA_VOTI_DOCENTI.find().toArray()
-
-                let docente_valutato = false
-
-                datiVoti.map((elem)=>{
-                    if(elem.cognomedocente === cog_doc && elem.nomedocente === nom_doc){
-                        docente_valutato = true
+                    //Filtri
+                    let filtro_docente = {
+                        "cognomedocente": cog_doc,
+                        "nomedocente": nom_doc
                     }
-                })
 
-                if(docente_valutato === true){
-                    await TABELLA_VOTI_DOCENTI.updateOne(
-                        filtro_docente, 
-                        { $push: { "valutazioni": { $each: valutazioni_classe } } }
-                    )
+                    let filtro_alunno = {
+                        "token": tk
+                    }
 
-                    await TABELLA_UTENTI.updateOne(
-                        filtro_alunno, 
-                        { $push: { "docenti_valutati": { nome_docente: nom_doc, cognome_docente: cog_doc } } }
-                    )
+                    //Strutture da impostare nel db
+                    let struttura_iniziale = {
+                        "cognomedocente": cog_doc,
+                        "nomedocente": nom_doc,
+                        "valutazioni" : []
+                    }
+
+                    for(i = 0; i < valutazioni.length; i++){
+                        valutazioni_classe.push(
+                            {
+                                "classealunno": classe,
+                                "domanda": valutazioni[i].idDomanda,
+                                "voto": valutazioni[i].voto
+                            }
+                        )
+                    }
+
+                    valutazioni_classe.map((elem, i)=>{
+                        struttura_iniziale.valutazioni.push(elem);
+                    })
+
+                    //Inserimento dati nella tabella delle valutazioni dei docenti
+                    await connessione()
+
+                    const datiVoti = await TABELLA_VOTI_DOCENTI.find().toArray()
+
+                    let docente_valutato = false
+
+                    datiVoti.map((elem)=>{
+                        if(elem.cognomedocente === cog_doc && elem.nomedocente === nom_doc){
+                            docente_valutato = true
+                        }
+                    })
+
+                    if(docente_valutato === true){
+                        await TABELLA_VOTI_DOCENTI.updateOne(
+                            filtro_docente, 
+                            { $push: { "valutazioni": { $each: valutazioni_classe } } }
+                        )
+
+                        await TABELLA_UTENTI.updateOne(
+                            filtro_alunno, 
+                            { $push: { "docenti_valutati": { nome_docente: nom_doc, cognome_docente: cog_doc } } }
+                        )
+                    } else {
+                        await TABELLA_VOTI_DOCENTI.insertOne(struttura_iniziale)
+
+                        await TABELLA_UTENTI.updateOne(
+                            filtro_alunno, 
+                            { $push: { "docenti_valutati": { nome_docente: nom_doc, cognome_docente: cog_doc } } }
+                        )
+                    }
+
+                    res.status(200).json({
+                        messaggio: "Valutazione inviata!"
+                    })
                 } else {
-                    await TABELLA_VOTI_DOCENTI.insertOne(struttura_iniziale)
-
-                    await TABELLA_UTENTI.updateOne(
-                        filtro_alunno, 
-                        { $push: { "docenti_valutati": { nome_docente: nom_doc, cognome_docente: cog_doc } } }
-                    )
+                    res.json({
+                        messaggio: "Autenticazione fallita"
+                    })
                 }
-
-                res.status(200).json({
-                    messaggio: "Valutazione inviata!"
-                })
             } else {
                 res.json({
                     messaggio: "Autenticazione fallita"
                 })
             }
         } catch (e) {
-            res.status(500).json({
+            res.json({
                 messaggio: "Si è verificato un errore nel server"
             })
         } finally {
@@ -499,35 +566,42 @@ app.post(ADMIN_CONSOLE, async(req, res) => {
         await connessione()
         const dati = await TABELLA_UTENTI.find({ token: tk }).toArray()
 
-        if(dati[0].token !== "" && dati.length !== 0){
-            res.json(
-                [
-                    {
-                        button: "Carica Studenti",
-                        urlEndpoint:"carica_studenti"
-                    },
-                    {
-                        button: "Carica Docenti",
-                        urlEndpoint:"carica_docenti"
-                    },
-                    {
-                        button: "Start/Stop Valutazioni",
-                        urlEndpoint: "start_stop_valutazioni"
-                    },
-                    {
-                        status: valutazioni_avviate
-                    }
-                ]
-            )
+        if(dati.length !== 0){
+            if(dati[0].token !== "" ){
+                res.json(
+                    [
+                        {
+                            button: "Carica Studenti",
+                            urlEndpoint:"carica_studenti"
+                        },
+                        {
+                            button: "Carica Docenti",
+                            urlEndpoint:"carica_docenti"
+                        },
+                        {
+                            button: "Start/Stop Valutazioni",
+                            urlEndpoint: "start_stop_valutazioni"
+                        },
+                        {
+                            status: valutazioni_avviate
+                        }
+                    ]
+                )
+            } else {
+                res.json({
+                    errore: true,
+                    messaggio: "Non hai il permesso per eseguire questo endpoint"
+                })
+            }
         } else {
             res.json({
-                domande: null,
+                errore: true,
                 messaggio: "Non hai il permesso per eseguire questo endpoint"
             })
         }
     } catch (e) {
-        res.status(500).json({
-            domande: null,
+        res.json({
+            errore: true,
             messaggio: "Si è verificato un errore nel server."
         })
     } finally {
@@ -542,24 +616,31 @@ app.post(GET_DOCENTI, async(req, res) => {
         await connessione()
         const dati = await TABELLA_UTENTI.find({ token: tk }).toArray()
 
-        if(dati[0].token !== "" && dati.length !== 0){
-            const docenti = await TABELLA_UTENTI.find({ tipo: "D" }).toArray()
-            const risultato = []
+        if(dati.length !== 0){
+            if(dati[0].token !== ""){
+                const docenti = await TABELLA_UTENTI.find({ tipo: "D" }).toArray()
+                const risultato = []
 
-            docenti.forEach((docente) => {
-                const { nome, cognome, email } = docente
+                docenti.forEach((docente) => {
+                    const { nome, cognome, email } = docente
 
-                risultato.push({
-                    nome,
-                    cognome,
-                    email,
+                    risultato.push({
+                        nome,
+                        cognome,
+                        email,
+                    })
                 })
-            })
 
-            res.json({
-                docenti: risultato,
-                messaggio: "Dati dei docenti ottenuti con successo!",
-            })
+                res.json({
+                    docenti: risultato,
+                    messaggio: "Dati dei docenti ottenuti con successo!",
+                })
+            } else {
+                res.json({
+                    docenti: null,
+                    messaggio: "Non hai il permesso per eseguire questo endpoint"
+                })
+            }
         } else {
             res.json({
                 docenti: null,
@@ -567,7 +648,7 @@ app.post(GET_DOCENTI, async(req, res) => {
             })
         }
     } catch (error) {
-        res.status(500).json({
+        res.json({
             docenti: null,
             messaggio: "Si è verificato un errore durante il recupero dei dati dei docenti.",
         })
@@ -584,42 +665,49 @@ app.post(CARICA_STUDENTI, async(req, res)  => {
         await connessione()
         const dati = await TABELLA_UTENTI.find({ token: tk }).toArray()
 
-        if(dati[0].token !== "" && dati.length !== 0){
-            // PERCORSO FILE
-            const PERCORSOFILE = './json/utenti.json'
+        if(dati.length !== 0){
+            if(dati[0].token !== ""){
+                // PERCORSO FILE
+                const PERCORSOFILE = './json/utenti.json'
 
-            fs.readFile(PERCORSOFILE, 'utf8', async (err, data) => {
-                await connessione()
+                fs.readFile(PERCORSOFILE, 'utf8', async (err, data) => {
+                    await connessione()
 
-                if (err) {
-                    console.error('Errore nella lettura del file:', err)
-                    return
-                }
+                    if (err) {
+                        console.error('Errore nella lettura del file:', err)
+                        return
+                    }
 
-                let studenti = []
+                    let studenti = []
 
-                try {
-                    // Converti il contenuto del file JSON in un oggetto JavaScript
-                    const json = JSON.parse(data);
-                    
-                    // Cicla sull'array di oggetti
-                    json.forEach(elemento => {
-                        // Se il tipo è 'S', inserisce l'elemento nel db
-                        if (elemento.tipo === 'S') {
-                            studenti.push(elemento)
-                        }
-                    })
+                    try {
+                        // Converti il contenuto del file JSON in un oggetto JavaScript
+                        const json = JSON.parse(data);
+                        
+                        // Cicla sull'array di oggetti
+                        json.forEach(elemento => {
+                            // Se il tipo è 'S', inserisce l'elemento nel db
+                            if (elemento.tipo === 'S') {
+                                studenti.push(elemento)
+                            }
+                        })
 
-                    await TABELLA_UTENTI.insertMany(studenti)
-                } catch (error) {
-                    console.error('Errore nella conversione del JSON:', error)
-                }
-            })
+                        await TABELLA_UTENTI.insertMany(studenti)
+                    } catch (error) {
+                        console.error('Errore nella conversione del JSON:', error)
+                    }
+                })
 
-            res.json({messaggio: "Studenti caricati con successo"})
+                res.json({messaggio: "Studenti caricati con successo"})
+            } else {
+                res.json({
+                    domande: null,
+                    messaggio: "Si è verificato un errore nel server."
+                })
+            }
         }
     } catch (e) {
-        res.status(500).json({
+        res.json({
             domande: null,
             messaggio: "Si è verificato un errore nel server."
         })
@@ -636,40 +724,47 @@ app.post(CARICA_DOCENTI, async(req, res) => {
         await connessione()
         const dati = await TABELLA_UTENTI.find({ token: tk }).toArray()
 
-        if(dati[0].token !== "" && dati.length !== 0){
-            // PERCORSO FILE
-            const PERCORSOFILE = './json/utenti.json';
+        if(dati.length !== 0){
+            if(dati[0].token !== ""){
+                // PERCORSO FILE
+                const PERCORSOFILE = './json/utenti.json';
 
-            fs.readFile(PERCORSOFILE, 'utf8', async (err, data) => {
-                await connessione()
-                if (err) {
-                    console.error('Errore nella lettura del file:', err);
-                    return
-                }
+                fs.readFile(PERCORSOFILE, 'utf8', async (err, data) => {
+                    await connessione()
+                    if (err) {
+                        console.error('Errore nella lettura del file:', err);
+                        return
+                    }
 
-                let docenti = []
+                    let docenti = []
 
-                try {
-                    // Converti il contenuto del file JSON in un oggetto JavaScript
-                    const json = JSON.parse(data);
-            
-                    // Cicla sull'array di oggetti
-                    json.forEach(elemento => {
-                        // Se il tipo è 'D', inserisce l'elemento nel db
-                        if (elemento.tipo === 'D') {
-                            docenti.push(elemento)
-                        }
-                    })
-                    await TABELLA_UTENTI.insertMany(docenti)
-                } catch (error) {
-                    console.error('Errore nella conversione del JSON:', error)
-                }
-            })
+                    try {
+                        // Converti il contenuto del file JSON in un oggetto JavaScript
+                        const json = JSON.parse(data);
+                
+                        // Cicla sull'array di oggetti
+                        json.forEach(elemento => {
+                            // Se il tipo è 'D', inserisce l'elemento nel db
+                            if (elemento.tipo === 'D') {
+                                docenti.push(elemento)
+                            }
+                        })
+                        await TABELLA_UTENTI.insertMany(docenti)
+                    } catch (error) {
+                        console.error('Errore nella conversione del JSON:', error)
+                    }
+                })
 
-            res.json({messaggio: "Docenti caricati con successo"})
+                res.json({messaggio: "Docenti caricati con successo"})
+            } else {
+                res.json({
+                    domande: null,
+                    messaggio: "Non sei autorizzato"
+                })
+            }
         }
     } catch (e) {
-        res.status(500).json({
+        res.json({
             domande: null,
             messaggio: "Si è verificato un errore nel server."
         })
@@ -686,25 +781,32 @@ app.post(START_STOP_VALUTAZIONI, async(req, res) => {
         await connessione()
         const dati = await TABELLA_UTENTI.find({ token: tk }).toArray()
 
-        if(dati[0].token !== "" && dati.length !== 0){
-            if(valutazioni_avviate === false){
-                valutazioni_avviate = true
+        if(dati.length !== 0){
+            if(dati[0].token !== ""){
+                if(valutazioni_avviate === false){
+                    valutazioni_avviate = true
 
-                res.json({
-                    valuta: valutazioni_avviate,
-                    messaggio: 'Valutazioni avviate!'
-                })
+                    res.json({
+                        valuta: valutazioni_avviate,
+                        messaggio: 'Valutazioni avviate!'
+                    })
+                } else {
+                    valutazioni_avviate = false
+
+                    res.json({
+                        valuta: valutazioni_avviate,
+                        messaggio: 'Valutazioni terminate!'
+                    })
+                }
             } else {
-                valutazioni_avviate = false
-
                 res.json({
-                    valuta: valutazioni_avviate,
-                    messaggio: 'Valutazioni terminate!'
+                    valuta: null,
+                    messaggio: "Non sei autorizzato"
                 })
             }
         }
     } catch (e) {
-        res.status(500).json({
+        res.json({
             valuta: null,
             messaggio: "Si è verificato un errore nel server."
         })
@@ -730,7 +832,7 @@ app.get(GET_DOMANDE, async(req, res) => {
             }
         )
     } catch (e) {
-        res.status(500).json({
+        res.json({
             messaggio: "Si è verificato un errore durante l'inserimento dei dati."
         })
     } finally {
@@ -755,18 +857,25 @@ app.post(VIEW_DOCENTE, async(req, res) => {
             if(dati_docenti.length !== 0){
                 const dati_utenti = await TABELLA_UTENTI.find({token: tk}).toArray()
 
-                if(dati_utenti.length !== 0 && dati_utenti[0].token !== ""){
-                    if(dati_utenti[0].tipo === "A" || dati_utenti[0].tipo === "D"){
-                        dati_docenti[0].valutazioni.map((elem)=>{
-                            voti_dom.push({id:elem.domanda, voto:elem.voto})
-                        })
+                if(dati_utenti.length !== 0){
+                    if(dati_utenti[0].token !== ""){
+                        if(dati_utenti[0].tipo === "A" || dati_utenti[0].tipo === "D"){
+                            dati_docenti[0].valutazioni.map((elem)=>{
+                                voti_dom.push({id:elem.domanda, voto:elem.voto})
+                            })
 
-                        let media_voti = calcola_media(voti_dom)
+                            let media_voti = calcola_media(voti_dom)
 
-                        res.status(200).json({
-                            media: media_voti,
-                            messaggio: "Media docente calcolata!"
-                        })
+                            res.status(200).json({
+                                media: media_voti,
+                                messaggio: "Media docente calcolata!"
+                            })
+                        } else {
+                            res.json({
+                                media: null,
+                                messaggio: "Non sei autorizzato ad accedere a questa risorsa!"
+                            })
+                        }
                     } else {
                         res.json({
                             media: null,
@@ -786,7 +895,7 @@ app.post(VIEW_DOCENTE, async(req, res) => {
                 })
             }
         } catch(e){
-            res.status(500).json({
+            res.json({
                 media: null,
                 messaggio: "Si è verificato un errore durante il calcolo della media"
             })
@@ -816,83 +925,89 @@ app.post(SCARICA_PDF_VALUTAZIONI, async(req, res) => {
             await connessione()
             const dati = await TABELLA_UTENTI.find({ token: tk }).toArray()
             
-            if(dati[0].token !== "" && dati[0].tipo === "D" || dati[0].tipo === "A" && dati.length !== 0){
-                const imageWidth = 100
+            if(dati.length !== 0){
+                if(dati[0].token !== "" && dati[0].tipo === "D" || dati[0].tipo === "A"){
+                    const imageWidth = 100
 
-                doc.image("./img/logoDenina.png", {
-                    align: 'right',
-                    valign: 'center',
-                    width: imageWidth
-                })
-                
-                const textX = doc.page.width - imageWidth - 330
-                const textY = doc.y
-                
-                doc
-                    .fontSize(13)
-                    .font('Times-Bold')
-                    .text('ISTITUTO ISTRUZIONE SUPERIORE“DENINA”SALUZZO\n', textX, textY, {
-                        align: 'center',
-                        valign: 'center'
-                    });
-                
-                doc
-                    .fontSize(12)
-                    .font('Times-Roman')
-                    .text(`Codice meccanografico: CNISO14001  TEL: 0175/43625\nCodice fiscale: 94033200042   email: CNIS014001@istruzione.it\n\n“C. Denina” Via della Chiesa, 21 -12037 Saluzzo (CN) \n “S. Pellico” Via della Croce, 54/A - 12037 Saluzzo (CN)\n“G. Rivoira” Via IV Novembre - 12039 Verzuolo (CN) \n`, textX, textY + 25, {
-                        align: 'center',
-                        valign: 'center'
-                    });
-                doc
-                    .fontSize(20)
-                    .font('Times-Bold')
-                    .text(`Risultati delle valutazioni ottenute per il docente ${nome} ${cognome}:\n`, 50, textY + 150, {
-                        align: 'center',
-                        valign: 'center'
-                    });
-
-                doc.addPage()
-                
-                const X = 0; 
-                const Y = doc.y; 
-
-                valutazioni.map((elem, i)=>{
-                    doc
-                    .font('Times-Bold')
-                    .fontSize(12.1)
-                    .text(
-                        `${i+1}) ${elem.domanda}
-                        `,
-                        {
-                            align: 'left'
-                        }
-                    )
-                    doc
-                    .font('Times-Roman')
-                    .fontSize(12.1)
-                    .text(
-                        `Media dei voti ottenuti alla domanda n${i+1}°: ${elem.media}
-                        `,
-                        {
-                            align: 'left'
-                        }
-                    )
-                })
-                doc.end()
-
-                const writeStream = fs.createWriteStream(filePath)
-                doc.pipe(writeStream)
-
-                writeStream.on('finish', () => {
-                    res.download(filePath, (err) => {
-                        if (err) {
-                            res.json({
-                                messaggio: "Si è verificato un errore durante il download del PDF"
-                            });
-                        } else {
-                            fs.unlinkSync(filePath)
-                        }
+                    doc.image("./img/logoDenina.png", {
+                        align: 'right',
+                        valign: 'center',
+                        width: imageWidth
                     })
+                    
+                    const textX = doc.page.width - imageWidth - 330
+                    const textY = doc.y
+                    
+                    doc
+                        .fontSize(13)
+                        .font('Times-Bold')
+                        .text('ISTITUTO ISTRUZIONE SUPERIORE“DENINA”SALUZZO\n', textX, textY, {
+                            align: 'center',
+                            valign: 'center'
+                        });
+                    
+                    doc
+                        .fontSize(12)
+                        .font('Times-Roman')
+                        .text(`Codice meccanografico: CNISO14001  TEL: 0175/43625\nCodice fiscale: 94033200042   email: CNIS014001@istruzione.it\n\n“C. Denina” Via della Chiesa, 21 -12037 Saluzzo (CN) \n “S. Pellico” Via della Croce, 54/A - 12037 Saluzzo (CN)\n“G. Rivoira” Via IV Novembre - 12039 Verzuolo (CN) \n`, textX, textY + 25, {
+                            align: 'center',
+                            valign: 'center'
+                        });
+                    doc
+                        .fontSize(20)
+                        .font('Times-Bold')
+                        .text(`Risultati delle valutazioni ottenute per il docente ${nome} ${cognome}:\n`, 50, textY + 150, {
+                            align: 'center',
+                            valign: 'center'
+                        });
+
+                    doc.addPage()
+                    
+                    const X = 0; 
+                    const Y = doc.y; 
+
+                    valutazioni.map((elem, i)=>{
+                        doc
+                        .font('Times-Bold')
+                        .fontSize(12.1)
+                        .text(
+                            `${i+1}) ${elem.domanda}
+                            `,
+                            {
+                                align: 'left'
+                            }
+                        )
+                        doc
+                        .font('Times-Roman')
+                        .fontSize(12.1)
+                        .text(
+                            `Media dei voti ottenuti alla domanda n${i+1}°: ${elem.media}
+                            `,
+                            {
+                                align: 'left'
+                            }
+                        )
+                    })
+                    doc.end()
+
+                    const writeStream = fs.createWriteStream(filePath)
+                    doc.pipe(writeStream)
+
+                    writeStream.on('finish', () => {
+                        res.download(filePath, (err) => {
+                            if (err) {
+                                res.json({
+                                    messaggio: "Si è verificato un errore durante il download del PDF"
+                                });
+                            } else {
+                                fs.unlinkSync(filePath)
+                            }
+                        })
+                    })
+                }
+            } else {
+                res.json({
+                    messaggio: "non sei autorizzato"
                 })
             }
         } catch(e){

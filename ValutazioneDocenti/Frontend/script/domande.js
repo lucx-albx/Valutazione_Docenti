@@ -57,6 +57,7 @@ const controlla_se_loggato =()=>{
 
     if(log === 'false' || log === null){
         window.location.href = './index.html'
+        localStorage.setItem("token", "null")
     }        
 }
 //! FINE BLOCCO FUNZIONI GENERALI
