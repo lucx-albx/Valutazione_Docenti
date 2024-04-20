@@ -2,11 +2,34 @@
 const LINK_SERVER = 'http://localhost:3001/'
 const API_DOMANDE = LINK_SERVER + 'get_domande'
 const API_VOTA_DOCENTE = LINK_SERVER + 'valuta_docente'
+const API_TOKEN_VALIDO = LINK_SERVER + 'token_valido'
 //! FINE BLOCCO VARIABLI E COSTANTI
 
 
 
 //! INIZIO BLOCCO FUNZIONI GENERALI
+const ripristina_localstorage =()=>{
+    localStorage.setItem('token', 'null')
+    localStorage.setItem('loggato', 'false')
+    window.location.href = './index.html'
+}
+
+const is_valid_token =(token)=>{
+    return new Promise((resolve, reject) => {
+        fetch(API_TOKEN_VALIDO, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({token})
+        })
+        .then(testo=>testo.json())
+        .then((data)=>{
+            resolve(data)
+        })
+    })
+}
+
 const ottieni_voti =()=>{
     let input_valutazioni = document.querySelectorAll(".voto")
     let valutazioni = []
@@ -93,25 +116,33 @@ const carica_domande =()=>{
 }
 
 const invia_valutazione =()=>{
-    let voti = ottieni_voti()
-    let id_dom = id_domande(voti.length)
-
-    let nome_docente = localStorage.nome_docente
-    let cognome_docente = localStorage.cognome_docente
-    let valutazioni = crea_valutazioni(voti, id_dom)
     let token = localStorage.getItem("token")
 
-    fetch(API_VOTA_DOCENTE, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({nome_docente, cognome_docente, valutazioni, token})
-    })
-    .then(testo=>testo.json())
+    is_valid_token(token)
     .then((data)=>{
-        alert(data.messaggio)
-        window.location.href = './vista_docenti.html';
+        if(data.valido === true){
+            let voti = ottieni_voti()
+            let id_dom = id_domande(voti.length)
+
+            let nome_docente = localStorage.nome_docente
+            let cognome_docente = localStorage.cognome_docente
+            let valutazioni = crea_valutazioni(voti, id_dom)
+
+            fetch(API_VOTA_DOCENTE, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({nome_docente, cognome_docente, valutazioni, token})
+            })
+            .then(testo=>testo.json())
+            .then((data)=>{
+                alert(data.messaggio)
+                window.location.href = './vista_docenti.html';
+            })
+        } else {
+            ripristina_localstorage()
+        }
     })
 }
 //! FINE BLOCCO FUNZIONI PER LE DOMANDE

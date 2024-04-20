@@ -245,6 +245,9 @@ app.post(LOGOUT, async(req, res) => {
                 messaggio: "Autenticazione fallita"
             })
         }
+
+        //Chiudo la connesione al database
+        await client.close()
     } catch(e){
         res.json(
             {
@@ -252,8 +255,6 @@ app.post(LOGOUT, async(req, res) => {
                 messaggio: 'Errore nel server, riprovare'
             }
         )
-    } finally {
-        client.close()
     }
 })
 
@@ -276,10 +277,12 @@ app.post(TOKEN_VALIDO, async(req, res) => {
                 valido: false
             })
         }
-
-        await client.close()
     } catch(e){
-        
+        res.json({
+            errore: e
+        })
+    } finally {
+        client.close()
     }
 })
 
@@ -304,6 +307,9 @@ app.post(RUOLO_UTENTE, async(req, res) => {
                 messaggio: 'Ruolo trovato con successo'
             }
         )
+
+        //Chiudo la connesione al database
+        await client.close()
     } catch(e){
         res.status(200).json(
             {
@@ -311,8 +317,6 @@ app.post(RUOLO_UTENTE, async(req, res) => {
                 messaggio: 'Errore nel server, riprovare la connessione'
             }
         )
-    } finally {
-        client.close()
     }
 })
 
@@ -351,6 +355,9 @@ app.post(GET_NOME_COGNOME_DOCENTE, async(req, res) => {
                 }
             )
         }
+
+        //Chiudo la connesione al database
+        await client.close()
     } catch(e){
         res.status(200).json(
             {
@@ -359,8 +366,6 @@ app.post(GET_NOME_COGNOME_DOCENTE, async(req, res) => {
                 messaggio: 'Errore nel server, riprovare la connessione'
             }
         )
-    } finally {
-        client.close()
     }
 })
 
@@ -430,14 +435,15 @@ app.post(GET_DOCENTI_CLASSE, async(req, res) => {
                     valuta: null
                 })
             }
+
+            //Chiudo la connesione al database
+            await client.close()
         } catch(e) {
             res.json({
                 docenti: null,
                 messaggio: "Si è verificato un errore durante il caricamento dei dati.",
                 valuta: null
             })
-        } finally {
-            client.close()
         }
     } else {
         res.json({
@@ -544,12 +550,13 @@ app.post(VALUTA_DOCENTE, async(req, res) => {
                     messaggio: "Autenticazione fallita"
                 })
             }
+
+            //Chiudo la connesione al database
+            await client.close()
         } catch (e) {
             res.json({
                 messaggio: "Si è verificato un errore nel server"
             })
-        } finally {
-            client.close()
         }
     } else {
         res.json({
@@ -599,13 +606,14 @@ app.post(ADMIN_CONSOLE, async(req, res) => {
                 messaggio: "Non hai il permesso per eseguire questo endpoint"
             })
         }
+
+        //Chiudo la connesione al database
+        await client.close()
     } catch (e) {
         res.json({
             errore: true,
             messaggio: "Si è verificato un errore nel server."
         })
-    } finally {
-        client.close()
     }
 })
 
@@ -647,13 +655,14 @@ app.post(GET_DOCENTI, async(req, res) => {
                 messaggio: "Non hai il permesso per eseguire questo endpoint"
             })
         }
+
+        //Chiudo la connesione al database
+        await client.close()
     } catch (error) {
         res.json({
             docenti: null,
             messaggio: "Si è verificato un errore durante il recupero dei dati dei docenti.",
         })
-    } finally {
-        client.close()
     }
 })
 
@@ -706,13 +715,14 @@ app.post(CARICA_STUDENTI, async(req, res)  => {
                 })
             }
         }
+
+        //Chiudo la connesione al database
+        await client.close()
     } catch (e) {
         res.json({
             domande: null,
             messaggio: "Si è verificato un errore nel server."
         })
-    } finally {
-        client.close()
     }
 })
 
@@ -763,15 +773,16 @@ app.post(CARICA_DOCENTI, async(req, res) => {
                 })
             }
         }
+
+        //Chiudo la connesione al database
+        await client.close()
     } catch (e) {
         res.json({
             domande: null,
             messaggio: "Si è verificato un errore nel server."
         })
-    } finally {
-        client.close()
     }
-});
+})
 
 //Middleware per iniziare il periodo di valutazione
 app.post(START_STOP_VALUTAZIONI, async(req, res) => {
@@ -805,13 +816,14 @@ app.post(START_STOP_VALUTAZIONI, async(req, res) => {
                 })
             }
         }
+
+        //Chiudo la connesione al database
+        await client.close()
     } catch (e) {
         res.json({
             valuta: null,
             messaggio: "Si è verificato un errore nel server."
         })
-    } finally {
-        client.close()
     }
 })
 
@@ -831,12 +843,13 @@ app.get(GET_DOMANDE, async(req, res) => {
                 messaggio: 'Domande estratte!'
             }
         )
+
+        //Chiudo la connesione al database
+        await client.close()
     } catch (e) {
         res.json({
             messaggio: "Si è verificato un errore durante l'inserimento dei dati."
         })
-    } finally {
-        client.close()
     }
 })
 
@@ -894,13 +907,14 @@ app.post(VIEW_DOCENTE, async(req, res) => {
                     messaggio: "Al momento questo docente è inesistente oppure non è stato votato."
                 })
             }
+
+            //Chiudo la connesione al database
+            await client.close()
         } catch(e){
             res.json({
                 media: null,
                 messaggio: "Si è verificato un errore durante il calcolo della media"
             })
-        } finally {
-            client.close()
         }
     } else {
         res.json({
@@ -1010,12 +1024,13 @@ app.post(SCARICA_PDF_VALUTAZIONI, async(req, res) => {
                     messaggio: "non sei autorizzato"
                 })
             }
+
+            //Chiudo la connesione al database
+            await client.close()
         } catch(e){
             res.json({
                 messaggio: "Si è verificato un errore durante la creazione del pdf"
             })
-        } finally {
-            client.close()
         }
     } else {
         res.json({
