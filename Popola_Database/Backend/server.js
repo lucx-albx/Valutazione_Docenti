@@ -22,7 +22,7 @@ app.options('*', cors())
 app.get('/carica_accessi', (req, res) => {
     connessione()
 
-    const collect = client.db("valutazioneDocenti").collection("accessi")
+    const collect = client.db("Alba_ValutazioneDocenti").collection("accessi")
 
     collect.insertMany(
         [
@@ -94,7 +94,7 @@ app.get('/carica_accessi', (req, res) => {
 app.get('/carica_utenti', async(req, res) => {
     connessione()
 
-    const miaCollection = client.db("valutazioneDocenti").collection("utenti")
+    const miaCollection = client.db("Alba_ValutazioneDocenti").collection("utenti")
     
     miaCollection.insertMany(
         [
@@ -733,7 +733,7 @@ app.get('/carica_utenti', async(req, res) => {
 app.get('/carica_domande', (req, res) => {
     connessione()
 
-    const collect = client.db("valutazioneDocenti").collection("domande")
+    const collect = client.db("Alba_ValutazioneDocenti").collection("domande")
 
     collect.insertMany(
         [

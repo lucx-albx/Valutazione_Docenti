@@ -5,6 +5,7 @@
 //!npm install crypto
 //!npm install pdfkit
 //!npm install fs
+//!npm install helmet
 const express = require('express')
 const cors = require("cors")
 const { MongoClient } = require("mongodb")
@@ -14,11 +15,12 @@ const fs = require('fs')
 const helmet = require('helmet')
 
 const client = new MongoClient("mongodb://localhost:27017") 
+const NOME_DB = "Alba_ValutazioneDocenti"
 
-const TABELLA_ACCESSI = client.db("valutazioneDocenti").collection("accessi")
-const TABELLA_UTENTI = client.db("valutazioneDocenti").collection("utenti")
-const TABELLA_DOMANDE = client.db("valutazioneDocenti").collection("domande")
-const TABELLA_VOTI_DOCENTI = client.db("valutazioneDocenti").collection("votiDocenti")
+const TABELLA_ACCESSI = client.db(NOME_DB).collection("accessi")
+const TABELLA_UTENTI = client.db(NOME_DB).collection("utenti")
+const TABELLA_DOMANDE = client.db(NOME_DB).collection("domande")
+const TABELLA_VOTI_DOCENTI = client.db(NOME_DB).collection("votiDocenti")
 
 const PORT = 3001
 const app = express()
@@ -574,7 +576,7 @@ app.post(ADMIN_CONSOLE, async(req, res) => {
         const dati = await TABELLA_UTENTI.find({ token: tk }).toArray()
 
         if(dati.length !== 0){
-            if(dati[0].token !== "" ){
+            if(dati[0].token !== "" && dati[0].tipo === "A"){
                 res.json(
                     [
                         {
@@ -625,7 +627,7 @@ app.post(GET_DOCENTI, async(req, res) => {
         const dati = await TABELLA_UTENTI.find({ token: tk }).toArray()
 
         if(dati.length !== 0){
-            if(dati[0].token !== ""){
+            if(dati[0].token !== "" && dati[0].tipo === "A"){
                 const docenti = await TABELLA_UTENTI.find({ tipo: "D" }).toArray()
                 const risultato = []
 
@@ -675,7 +677,7 @@ app.post(CARICA_STUDENTI, async(req, res)  => {
         const dati = await TABELLA_UTENTI.find({ token: tk }).toArray()
 
         if(dati.length !== 0){
-            if(dati[0].token !== ""){
+            if(dati[0].token !== "" && dati[0].tipo === "A"){
                 // PERCORSO FILE
                 const PERCORSOFILE = './json/utenti.json'
 
@@ -735,7 +737,7 @@ app.post(CARICA_DOCENTI, async(req, res) => {
         const dati = await TABELLA_UTENTI.find({ token: tk }).toArray()
 
         if(dati.length !== 0){
-            if(dati[0].token !== ""){
+            if(dati[0].token !== "" && dati[0].tipo === "A"){
                 // PERCORSO FILE
                 const PERCORSOFILE = './json/utenti.json';
 
@@ -793,7 +795,7 @@ app.post(START_STOP_VALUTAZIONI, async(req, res) => {
         const dati = await TABELLA_UTENTI.find({ token: tk }).toArray()
 
         if(dati.length !== 0){
-            if(dati[0].token !== ""){
+            if(dati[0].token !== "" && dati[0].tipo === "A"){
                 if(valutazioni_avviate === false){
                     valutazioni_avviate = true
 
