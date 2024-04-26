@@ -851,6 +851,7 @@ app.get(GET_DOMANDE, async(req, res) => {
         await client.close()
     } catch (e) {
         res.json({
+	    domande: null,
             messaggio: "Si è verificato un errore durante l'inserimento dei dati."
         })
     }
