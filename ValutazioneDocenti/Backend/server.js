@@ -712,20 +712,14 @@ app.post(CARICA_STUDENTI, async(req, res)  => {
 
                 res.json({messaggio: "Studenti caricati con successo"})
             } else {
-                res.json({
-                    domande: null,
-                    messaggio: "Si è verificato un errore nel server."
-                })
+                res.json({messaggio: "Si è verificato un errore nel server."})
             }
         }
 
         //Chiudo la connesione al database
         await client.close()
     } catch (e) {
-        res.json({
-            domande: null,
-            messaggio: "Si è verificato un errore nel server."
-        })
+        res.json({messaggio: "Si è verificato un errore nel server."})
     }
 })
 
