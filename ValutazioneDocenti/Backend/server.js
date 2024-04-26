@@ -204,7 +204,9 @@ app.post(LOGIN, async(req, res) => {
     } catch(e){
         res.json(
             {
-                messaggio: 'Errore nel server, riprovare'
+                credenziali_res: false,
+                tuo_token: undefined,
+                messaggio: 'Errore nel server'
             }
         )
     } finally {
@@ -243,7 +245,7 @@ app.post(LOGOUT, async(req, res) => {
             }
         } else {
             res.json({
-                docenti: null,
+                successo: false,
                 messaggio: "Autenticazione fallita"
             })
         }
@@ -711,20 +713,14 @@ app.post(CARICA_STUDENTI, async(req, res)  => {
 
                 res.json({messaggio: "Studenti caricati con successo"})
             } else {
-                res.json({
-                    domande: null,
-                    messaggio: "Si è verificato un errore nel server."
-                })
+                res.json({messaggio: "Si è verificato un errore nel server."})
             }
         }
 
         //Chiudo la connesione al database
         await client.close()
     } catch (e) {
-        res.json({
-            domande: null,
-            messaggio: "Si è verificato un errore nel server."
-        })
+        res.json({messaggio: "Si è verificato un errore nel server."})
     }
 })
 
@@ -850,6 +846,7 @@ app.get(GET_DOMANDE, async(req, res) => {
         await client.close()
     } catch (e) {
         res.json({
+	    domande: null,
             messaggio: "Si è verificato un errore durante l'inserimento dei dati."
         })
     }
