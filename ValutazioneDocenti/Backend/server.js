@@ -203,7 +203,9 @@ app.post(LOGIN, async(req, res) => {
     } catch(e){
         res.json(
             {
-                messaggio: 'Errore nel server, riprovare'
+                credenziali_res: false,
+                tuo_token: undefined,
+                messaggio: 'Errore nel server'
             }
         )
     } finally {
