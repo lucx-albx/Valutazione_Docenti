@@ -242,7 +242,7 @@ app.post(LOGOUT, async(req, res) => {
             }
         } else {
             res.json({
-                docenti: null,
+                successo: false,
                 messaggio: "Autenticazione fallita"
             })
         }
