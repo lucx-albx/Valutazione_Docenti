@@ -112,7 +112,7 @@ const calcola_media =(voti)=>{
 
         id_voto.map((item) => {
             if (item.id === elem) {
-                som += item.voto
+                som += parseInt(item.voto)
                 med = som/nvoti
             }
         })
@@ -204,9 +204,7 @@ app.post(LOGIN, async(req, res) => {
     } catch(e){
         res.json(
             {
-                credenziali_res: false,
-                tuo_token: undefined,
-                messaggio: 'Errore nel server'
+                messaggio: 'Errore nel server, riprovare'
             }
         )
     } finally {
@@ -245,7 +243,7 @@ app.post(LOGOUT, async(req, res) => {
             }
         } else {
             res.json({
-                successo: false,
+                docenti: null,
                 messaggio: "Autenticazione fallita"
             })
         }
@@ -713,14 +711,20 @@ app.post(CARICA_STUDENTI, async(req, res)  => {
 
                 res.json({messaggio: "Studenti caricati con successo"})
             } else {
-                res.json({messaggio: "Si è verificato un errore nel server."})
+                res.json({
+                    domande: null,
+                    messaggio: "Si è verificato un errore nel server."
+                })
             }
         }
 
         //Chiudo la connesione al database
         await client.close()
     } catch (e) {
-        res.json({messaggio: "Si è verificato un errore nel server."})
+        res.json({
+            domande: null,
+            messaggio: "Si è verificato un errore nel server."
+        })
     }
 })
 
@@ -846,7 +850,6 @@ app.get(GET_DOMANDE, async(req, res) => {
         await client.close()
     } catch (e) {
         res.json({
-	    domande: null,
             messaggio: "Si è verificato un errore durante l'inserimento dei dati."
         })
     }
