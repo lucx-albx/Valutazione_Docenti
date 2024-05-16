@@ -13,6 +13,7 @@ const crypto = require('crypto')
 const PDFDocument = require('pdfkit')
 const fs = require('fs')
 const helmet = require('helmet')
+const jwt = require('jsonwebtoken');
 
 const client = new MongoClient("mongodb://localhost:27017") 
 const NOME_DB = "Alba_ValutazioneDocenti"
@@ -123,19 +124,16 @@ const calcola_media =(voti)=>{
     return lista_media
 }
 
-//Funzione per generare il token in chiaro
+//Funzione per generare il token
 const genera_token =(em)=>{
-    // Genera un array con 10.000 elementi
-    const array = Array.from({ length: 10000 }, (_, index) => index + 1)
+    const SECRET_OF_TOKEN = crypto.randomBytes(64).toString('hex')
+    
+    const token = jwt.sign({ em }, SECRET_OF_TOKEN)
 
-    // Estrae un dato casuale dall'array
-    const index = Math.floor(Math.random() * array.length)
-    const dato = array[index]
-
-    return em + String(dato)
+    return token
 }
 
-//Funzione per la crittografia sha256
+//!Funzione per la crittografia sha256 - attualmente non in uso
 function crittografia_sha256(psw) {
 	return new Promise((resolve, reject) => {
 		const password = psw
@@ -178,7 +176,7 @@ app.post(LOGIN, async(req, res) => {
         })
 
         if(credenziali_corrette == true){
-            tk = await crittografia_sha256(genera_token(email_utente))
+            tk = genera_token(email_utente)
 
             await TABELLA_UTENTI.updateOne(
                 {email: email_utente},
