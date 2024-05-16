@@ -101,313 +101,313 @@ app.get('/carica_utenti', async(req, res) => {
             {
                 "email": "admin@denina.it",
                 "tipo": "A",
-                "token": ""
+                
             }, 
             {
                 "email": "alba.lucafrancesco@denina.it",
                 "classe": "5L", 
                 "tipo": "S",
                 "docenti_valutati": [], 
-                "token": ""
+                
             }, 
             {
                 "email": "audisio.nicolo@denina.it",
                 "classe": "5L",
                 "tipo": "S",
                 "docenti_valutati": [], 
-                "token": ""
+                
             },
             {
                 "email": "baqiqi.francesco@denina.it",
                 "classe": "4L", 
                 "tipo": "S",
                 "docenti_valutati": [], 
-                "token": ""
+                
             },
             {
                 "email": "barra.erik@denina.it",
                 "classe": "4L", 
                 "tipo": "S",
                 "docenti_valutati": [], 
-                "token": ""
+                
             },
             {
                 "email": "barra.leonardo@denina.it", 
                 "classe": "5L", 
                 "tipo": "S",
                 "docenti_valutati": [],
-                "token": ""
+                
             },
             {
                 "email": "bastonero.stefano@denina.it",
                 "classe": "4L", 
                 "tipo": "S",
                 "docenti_valutati": [], 
-                "token": ""
+                
             },
             {
                 "email": "bianco.andrea@denina.it",
                 "classe": "4L",
                 "tipo": "S",
                 "docenti_valutati": [],
-                "token": ""
+                
             },
             {
                 "email": "bondar.oleksandr@denina.it",
                 "classe": "4L", 
                 "tipo": "S",
                 "docenti_valutati": [], 
-                "token": ""
+                
             },
             {
                 "email": "bracco.mattia@denina.it",
                 "classe": "5L", 
                 "tipo": "S",
                 "docenti_valutati": [], 
-                "token": ""
+                
             },
             {
                 "email": "canino.leonardo@denina.it",
                 "classe": "4L", 
                 "tipo": "S",
                 "docenti_valutati": [], 
-                "token": ""
+                
             },
             {
                 "email": "castellano.gabriele@denina.it",
                 "classe": "4L", 
                 "tipo": "S",
                 "docenti_valutati": [],
-                "token": ""
+                
             },
             {
                 "email": "chen.lihua@denina.it",
                 "classe": "4L", 
                 "tipo": "S",
                 "docenti_valutati": [], 
-                "token": ""
+                
             },
             {
                 "email": "culasso.edoardo@denina.it",
                 "classe": "5L", 
                 "tipo": "S",
                 "docenti_valutati": [],
-                "token": ""
+                
             },
             {
                 "email": "de.bonisimone@denina.it",
                 "classe": "5L", 
                 "tipo": "S",
                 "docenti_valutati": [], 
-                "token": ""
+                
             },
             {
                 "email": "dimarco.mirko@denina.it",
                 "classe": "5L",
                 "tipo": "S", 
                 "docenti_valutati": [],
-                "token": ""
+                
             },
             {
                 "email": "dossetto.giuseppe@denina.it", 
                 "classe": "5L",
                 "tipo": "S",
                 "docenti_valutati": [], 
-                "token": ""
+                
             },
             {
                 "email": "elakhdar.ayoub@denina.it",
                 "classe": "4L", 
                 "tipo": "S",
                 "docenti_valutati": [], 
-                "token": ""
+                
             },
             {
                 "email": "fortunato.marcochiaffredo@denina.it",
                 "classe": "5L",
                 "tipo": "S", 
                 "docenti_valutati": [], 
-                "token": ""
+                
             },
             {
                 "email": "galeasso.federico@denina.it",
                 "classe": "5L",
                 "tipo": "S", 
                 "docenti_valutati": [], 
-                "token": ""
+                
             },
             {
                 "email": "galfre.beniaminomaria@denina.it",
                 "classe": "5L", 
                 "tipo": "S",
                 "docenti_valutati": [], 
-                "token": ""
+                
             },
             {
                 "email": "garello.matteo@denina.it",
                 "classe": "4L",
                 "tipo": "S", 
                 "docenti_valutati": [],
-                "token": ""
+                
             },
             {
                 "email": "garnero.luca@denina.it",
                 "classe": "4L", 
                 "tipo": "S",
                 "docenti_valutati": [],
-                "token": ""
+                
             },
             {
                 "email": "garnerone.stefano@denina.it", 
                 "classe": "4L",
                 "tipo": "S", 
                 "docenti_valutati": [], 
-                "token": ""
+                
             },
             {
                 "email": "giusiano.massimo@denina.it",
                 "classe": "5L", 
                 "tipo": "S",
                 "docenti_valutati": [], 
-                "token": ""
+                
             },
             {
                 "email": "kadiasi.daniele@denina.it",
                 "classe": "4L",
                 "tipo": "S", 
                 "docenti_valutati": [], 
-                "token": ""
+                
             },
             {
                 "email": "lepori.gabriele@denina.it",
                 "classe": "4L",
                 "tipo": "S", 
                 "docenti_valutati": [], 
-                "token": ""
+                
             },
             {
                 "email": "martini.gabriele@denina.it",
                 "classe": "5L", 
                 "tipo": "S",
                 "docenti_valutati": [],
-                "token": ""
+                
             },
             {
                 "email": "masante.federico@denina.it", 
                 "classe": "4L", 
                 "tipo": "S",
                 "docenti_valutati": [], 
-                "token": ""
+                
             },
             {
                 "email": "mazzone.samuele@denina.it", 
                 "classe": "4L",
                 "tipo": "S", 
                 "docenti_valutati": [], 
-                "token": ""
+                
             },
             {
                 "email": "minetti.leonardo@denina.it", 
                 "classe": "5L", 
                 "tipo": "S",
                 "docenti_valutati": [], 
-                "token": ""
+                
             },
             {
                 "email": "monge.isacco@denina.it", 
                 "classe": "4L", 
                 "tipo": "S",
                 "docenti_valutati": [], 
-                "token": ""
+                
             },
             {
                 "email": "occelli.emanuel@denina.it", 
                 "classe": "4L", 
                 "tipo": "S",
                 "docenti_valutati": [], 
-                "token": ""
+                
             },
             {
                 "email": "pal.bhushan@denina.it", 
                 "classe": "4L", 
                 "tipo": "S",
                 "docenti_valutati": [], 
-                "token": ""
+                
             },
             {
                 "email": "paseri.kevin@denina.it", 
                 "classe": "5L", 
                 "tipo": "S",
                 "docenti_valutati": [], 
-                "token": ""
+                
             },
             {
                 "email": "pellitta.francesco@denina.it", 
                 "classe": "4L",
                 "tipo": "S", 
                 "docenti_valutati": [], 
-                "token": ""
+                
             },
             {
                 "email": "ramello.sebastiano@denina.it", 
                 "classe": "4L",
                 "tipo": "S",
                 "docenti_valutati": [], 
-                "token": ""
+                
             },
             {
                 "email": "ribotta.gabriele@denina.it", 
                 "classe": "4L",
                 "tipo": "S", 
                 "docenti_valutati": [], 
-                "token": ""
+                
             },
             {
                 "email": "singh.siddharth@denina.it", 
                 "classe": "4L",
                 "tipo": "S", 
                 "docenti_valutati": [], 
-                "token": ""
+                
             },
             {
                 "email": "soave.sebastiano@denina.it", 
                 "classe": "5L", 
                 "tipo": "S",
                 "docenti_valutati": [], 
-                "token": ""
+                
             },
             {
                 "email": "stefanin.francesco@denina.it", 
                 "classe": "4L",
                 "tipo": "S", 
                 "docenti_valutati": [], 
-                "token": ""
+                
             },
             {
                 "email": "vaschetto.emanuele@denina.it", 
                 "classe": "5L", 
                 "tipo": "S",
                 "docenti_valutati": [], 
-                "token": ""
+                
             },
             {
                 "email": "volpe.giovanni@denina.it", 
                 "classe": "4L",
                 "tipo": "S", 
                 "docenti_valutati": [], 
-                "token": ""
+                
             },
             {
                 "email": "zhou.chenghuan@denina.it", 
                 "classe": "5L",
                 "tipo": "S",
                 "docenti_valutati": [], 
-                "token": ""
+                
             },
             {
                 "email": "manuela.dalbesio@denina.it",
                 "tipo": "D",
-                "token": "",
+                
                 "nome":"Manuela",
                 "cognome":"Dalbesio",
                 "classi_materie":[
@@ -431,7 +431,7 @@ app.get('/carica_utenti', async(req, res) => {
             {
                 "email": "pierangelo.verga@denina.it",
                 "tipo": "D",
-                "token": "",
+                
                 "nome":"Pierangelo",
                 "cognome": "Verga",
                 "classi_materie":[
@@ -460,7 +460,7 @@ app.get('/carica_utenti', async(req, res) => {
             {
                 "email": "flaviano.monge@denina.it",
                 "tipo": "D",
-                "token": "",
+                
                 "nome":"Flaviano",
                 "cognome":"Monge",
                 "classi_materie":[
@@ -484,7 +484,7 @@ app.get('/carica_utenti', async(req, res) => {
             {
                 "email": "monica.rosso@denina.it",
                 "tipo": "D",
-                "token": "",
+                
                 "nome":"Monica",
                 "cognome": "Rosso",
                 "classi_materie":[
@@ -508,7 +508,7 @@ app.get('/carica_utenti', async(req, res) => {
             {
                 "email": "carlotta.rosso@denina.it",
                 "tipo": "D", 
-                "token": "",
+                
                 "nome":"Carlotta",
                 "cognome":"Rosso",
                 "classi_materie": [
@@ -527,7 +527,7 @@ app.get('/carica_utenti', async(req, res) => {
             {
                 "email": "giovanna.migliore@denina.it", 
                 "tipo": "D",
-                "token": "",
+                
                 "nome":"Giovanna",
                 "cognome":"Migliore",
                 "classi_materie": [
@@ -546,7 +546,7 @@ app.get('/carica_utenti', async(req, res) => {
             {
                 "email": "raffaella.cometto@denina.it", 
                 "tipo": "D",
-                "token": "",
+                
                 "nome":"Raffaella",
                 "cognome":"Cometto",
                 "classi_materie": [
@@ -565,7 +565,7 @@ app.get('/carica_utenti', async(req, res) => {
             {
                 "email": "nazareno.muratore@denina.it", 
                 "tipo": "D",
-                "token": "",
+                
                 "nome":"Nazareno",
                 "cognome":"Muratore",
                 "classi_materie": [
@@ -579,7 +579,7 @@ app.get('/carica_utenti', async(req, res) => {
             {
                 "email": "patrick.gourdain@denina.it", 
                 "tipo": "D",
-                "token": "",
+                
                 "nome":"Patrick",
                 "cognome":"Gourdain",
                 "classi_materie": [
@@ -593,7 +593,7 @@ app.get('/carica_utenti', async(req, res) => {
             {
                 "email": "enrico.allione@denina.it", 
                 "tipo": "D",
-                "token": "",
+                
                 "nome":"Enrico",
                 "cognome":"Allione",
                 "classi_materie": [
@@ -632,7 +632,7 @@ app.get('/carica_utenti', async(req, res) => {
             {
                 "email": "andrea.giordano@denina.it", 
                 "tipo": "D",
-                "token": "",
+                
                 "nome":"Andrea",
                 "cognome":"Giordano",
                 "classi_materie": [
@@ -661,7 +661,7 @@ app.get('/carica_utenti', async(req, res) => {
             {
                 "email": "sara.obertino@denina.it", 
                 "tipo": "D",
-                "token": "",
+                
                 "nome":"Sara",
                 "cognome":"Obertino",	
                 "classi_materie": [
@@ -680,7 +680,7 @@ app.get('/carica_utenti', async(req, res) => {
             {
                 "email": "rossella.rossaro@denina.it", 
                 "tipo": "D",
-                "token": "",
+                
                 "nome":"Rossella",
                 "cognome":"Rossaro",
                 "classi_materie": [
@@ -699,7 +699,7 @@ app.get('/carica_utenti', async(req, res) => {
             {
                 "email": "laura.cavallera@denina.it", 
                 "tipo": "D",
-                "token": "",
+                
                 "nome":"Laura",
                 "cognome":"Cavallera",
                 "classi_materie": [
@@ -713,7 +713,7 @@ app.get('/carica_utenti', async(req, res) => {
             {
                 "email": "carlo.depetris@denina.it", 
                 "tipo": "D",
-                "token": "",
+                
                 "nome":"Carlo",
                 "cognome":"Depetris",
                 "classi_materie": [

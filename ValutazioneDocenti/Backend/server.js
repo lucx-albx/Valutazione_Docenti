@@ -2,14 +2,13 @@
 //!npm install express
 //!npm install cors
 //!npm install mongodb
-//!npm install crypto
 //!npm install pdfkit
 //!npm install fs
 //!npm install helmet
+//!npm install jsonwebtoken
 const express = require('express')
 const cors = require("cors")
 const { MongoClient } = require("mongodb")
-const crypto = require('crypto')
 const PDFDocument = require('pdfkit')
 const fs = require('fs')
 const helmet = require('helmet')
@@ -17,6 +16,7 @@ const jwt = require('jsonwebtoken');
 
 const client = new MongoClient("mongodb://localhost:27017") 
 const NOME_DB = "Alba_ValutazioneDocenti"
+const SECRET_OF_TOKEN = "e0dcdfe032e84369cffe66ab2429b176c4daf3d58384800eeb3b12b8196f3a0e5e1a0284d84825e2eb60aadd199909c6215fea8230c1b1621134aa173c775207"
 
 const TABELLA_ACCESSI = client.db(NOME_DB).collection("accessi")
 const TABELLA_UTENTI = client.db(NOME_DB).collection("utenti")
@@ -27,7 +27,6 @@ const PORT = 3001
 const app = express()
 const QTADOM = 10
 const LOGIN = "/login"
-const LOGOUT = "/logout"
 const TOKEN_VALIDO = "/token_valido"
 const RUOLO_UTENTE = "/ruolo_utente"
 const GET_NOME_COGNOME_DOCENTE = "/get_nome_cognome_docente"
@@ -126,35 +125,9 @@ const calcola_media =(voti)=>{
 
 //Funzione per generare il token
 const genera_token =(em)=>{
-    const SECRET_OF_TOKEN = crypto.randomBytes(64).toString('hex')
-    
     const token = jwt.sign({ em }, SECRET_OF_TOKEN)
 
     return token
-}
-
-//!Funzione per la crittografia sha256 - attualmente non in uso
-function crittografia_sha256(psw) {
-	return new Promise((resolve, reject) => {
-		const password = psw
-		const data = Buffer.from(password)
-		const hash = crypto.createHash('sha256')	
-		
-		hash.on('error', (error) => {
-			reject(error)
-		})
-
-		hash.on('readable', () => {
-			const hashData = hash.read()
-			if (hashData) {
-				const hashHex = hashData.toString('hex')
-				resolve(hashHex)
-			}
-		})
-
-		hash.write(data)
-		hash.end()
-	})
 }
 
 //Middleware per fare l'accesso alla piattaforma
@@ -177,11 +150,6 @@ app.post(LOGIN, async(req, res) => {
 
         if(credenziali_corrette == true){
             tk = genera_token(email_utente)
-
-            await TABELLA_UTENTI.updateOne(
-                {email: email_utente},
-                {$set: {"token": tk}}
-            )
 
             res.status(200).json(
                 {
@@ -210,80 +178,21 @@ app.post(LOGIN, async(req, res) => {
     }
 })
 
-//Middleware per sloggare l'utente dall'account
-app.post(LOGOUT, async(req, res) => {
-    let tk = req.body.token
-
-    try{
-        await connessione()
-        const dati_utenti = await TABELLA_UTENTI.find({token: tk}).toArray()
-
-        if(dati_utenti.length !== 0){
-            if(dati_utenti[0].token !== ""){
-                await TABELLA_UTENTI.updateOne(
-                    {token: tk},
-                    {$set: {"token": ''}}
-                )
-
-                res.status(200).json(
-                    {
-                        successo: true,
-                        messaggio: "Sloggato con successo"
-                    }
-                )
-            } else {
-                res.json(
-                    {
-                        successo: false,
-                        messaggio: "Errore nella verifica dell'account"
-                    }
-                )
-            }
-        } else {
-            res.json({
-                docenti: null,
-                messaggio: "Autenticazione fallita"
-            })
-        }
-
-        //Chiudo la connesione al database
-        await client.close()
-    } catch(e){
-        res.json(
-            {
-                successo: false,
-                messaggio: 'Errore nel server, riprovare'
-            }
-        )
-    }
-})
-
 //Middleware per controllare la validità del token
 app.post(TOKEN_VALIDO, async(req, res) => {
     let tk = req.body.token
 
-    try{
-        await connessione()
-        const dati_utenti = await TABELLA_UTENTI.find({token: tk}).toArray()
-
-        if(dati_utenti.length !== 0){
-            if(dati_utenti[0].token !== ""){
-                res.json({
-                    valido: true
-                })
-            }
-        } else {
+    jwt.verify(tk, SECRET_OF_TOKEN, (err, dec) => {
+        if (err) {
             res.json({
                 valido: false
             })
+        } else {
+            res.json({
+                valido: true
+            })
         }
-    } catch(e){
-        res.json({
-            errore: e
-        })
-    } finally {
-        client.close()
-    }
+    })
 })
 
 //Middlware per controllare ruolo dell'utente
@@ -291,82 +200,90 @@ app.post(RUOLO_UTENTE, async(req, res) => {
     let tk = req.body.token
     let ruolo_utente = ""
 
-    try{
-        await connessione()
-        const dati_utenti = await TABELLA_UTENTI.find().toArray()
-        
-        dati_utenti.map((elem, i)=>{
-            if(elem.token === tk && elem.token !== ""){
-                ruolo_utente = elem.tipo
-            }
-        })
+    jwt.verify(tk, SECRET_OF_TOKEN, async(err, dec) => {
+        if (err) {
+            res.status(200).json(
+                {
+                    tipo: '',
+                    messaggio: 'Token non valido'
+                }
+            )
+        } else {
+            try{
+                await connessione()
+                const dati_utenti = await TABELLA_UTENTI.find({email: dec.em}).toArray()
 
-        res.status(200).json(
-            {
-                tipo: ruolo_utente,
-                messaggio: 'Ruolo trovato con successo'
-            }
-        )
+                ruolo_utente = dati_utenti[0].tipo
 
-        //Chiudo la connesione al database
-        await client.close()
-    } catch(e){
-        res.status(200).json(
-            {
-                tipo: '',
-                messaggio: 'Errore nel server, riprovare la connessione'
+                res.status(200).json(
+                    {
+                        tipo: ruolo_utente,
+                        messaggio: 'Ruolo trovato con successo'
+                    }
+                )
+
+                //Chiudo la connesione al database
+                await client.close()
+            } catch(e){
+                res.status(200).json(
+                    {
+                        tipo: '',
+                        messaggio: 'Errore nel server, riprovare la connessione'
+                    }
+                )
             }
-        )
-    }
+        }
+    }) 
 })
 
 //Middlware per ottenre il nome ed il cognome del docente
 app.post(GET_NOME_COGNOME_DOCENTE, async(req, res) => {
     let tk = req.body.token
 
-    try{
-        await connessione()
-        const dati_utenti = await TABELLA_UTENTI.find({token: tk}).toArray()
-        
-        if(dati_utenti[0].tipo === "D" && dati_utenti.length !== 0){
-            if(dati_utenti[0].token !== ""){
-                res.status(200).json(
-                    {
-                        nome: dati_utenti[0].nome,
-                        cognome: dati_utenti[0].cognome,
-                        messaggio: 'Nome e cognome trovati!'
-                    }
-                )
-            } else {
-                res.status(200).json(
-                    {
-                        nome: null,
-                        cognome: null,
-                        messaggio: 'Non sei autorizzato'
-                    }
-                )
-            }
-        } else {
+    jwt.verify(tk, SECRET_OF_TOKEN, async (err, dec) => {
+        if (err) {
             res.status(200).json(
                 {
                     nome: null,
                     cognome: null,
-                    messaggio: 'Non sei autorizzato'
+                    messaggio: 'Token non valido'
                 }
             )
-        }
+        } else {
+            try{
+                await connessione()
+                const dati_utenti = await TABELLA_UTENTI.find({email: dec.em}).toArray()
 
-        //Chiudo la connesione al database
-        await client.close()
-    } catch(e){
-        res.status(200).json(
-            {
-                nome: null,
-                cognome: null,
-                messaggio: 'Errore nel server, riprovare la connessione'
+                if(dati_utenti[0].tipo === "D"){
+                    res.status(200).json(
+                        {
+                            nome: dati_utenti[0].nome,
+                            cognome: dati_utenti[0].cognome,
+                            messaggio: 'Nome e cognome trovati!'
+                        }
+                    )
+                } else {
+                    res.status(200).json(
+                        {
+                            nome: null,
+                            cognome: null,
+                            messaggio: 'Non sei autorizzato'
+                        }
+                    )
+                }
+                //Chiudo la connesione al database
+                await client.close()
+            } catch(e){
+                res.status(200).json(
+                    {
+                        nome: null,
+                        cognome: null,
+                        messaggio: 'Errore nel server, riprovare la connessione'
+                    }
+                )
             }
-        )
-    }
+        }
+    })
 })
 
 //Middlware per ottenre tutti i docenti che insegnano nella tua classe
@@ -377,14 +294,19 @@ app.post(GET_DOCENTI_CLASSE, async(req, res) => {
     let docenti_alunno_valutati = []
 
     if(valutazioni_avviate === true){
-        try{
-            //Cerco classe e docenti valutati dall'alunno in questione
-            await connessione()
-            
-            const dati_singolo_utente = await TABELLA_UTENTI.find({token: tk}).toArray()
+        jwt.verify(tk, SECRET_OF_TOKEN, async (err, dec) => {
+            if (err) {
+                res.json({
+                    docenti: null,
+                    messaggio: "Token non valido",
+                    valuta: null
+                })
+            } else {
+                try{
+                    //Cerco classe e docenti valutati dall'alunno in questione
+                    await connessione()
+                    const dati_singolo_utente = await TABELLA_UTENTI.find({email: dec.em}).toArray()
 
-            if(dati_singolo_utente.length !== 0){
-                if(dati_singolo_utente[0].token !== ""){
                     if(dati_singolo_utente[0].tipo === "S"){
                         classe = dati_singolo_utente[0].classe
                         docenti_alunno_valutati = dati_singolo_utente[0].docenti_valutati
@@ -421,30 +343,17 @@ app.post(GET_DOCENTI_CLASSE, async(req, res) => {
                             valuta: true
                         }
                     )
-                } else {
+                    //Chiudo la connesione al database
+                    await client.close()
+                } catch(e) {
                     res.json({
                         docenti: null,
-                        messaggio: "Autenticazione fallita",
+                        messaggio: "Si è verificato un errore durante il caricamento dei dati.",
                         valuta: null
                     })
                 }
-            } else {
-                res.json({
-                    docenti: null,
-                    messaggio: "Autenticazione fallita",
-                    valuta: null
-                })
             }
-
-            //Chiudo la connesione al database
-            await client.close()
-        } catch(e) {
-            res.json({
-                docenti: null,
-                messaggio: "Si è verificato un errore durante il caricamento dei dati.",
-                valuta: null
-            })
-        }
+        })
     } else {
         res.json({
             docenti: null,
@@ -464,14 +373,18 @@ app.post(VALUTA_DOCENTE, async(req, res) => {
     let valutazioni_classe = []
 
     if(valutazioni_avviate === true){
-        try {
-            //Cerco la classe dell'alunno
-            await connessione()
+        jwt.verify(tk, SECRET_OF_TOKEN, async (err, dec) => {
+            if (err) {
+                res.status(200).json({
+                    messaggio: "Token non valido"
+                })
+            } else {
+                try {
+                    //Cerco la classe dell'alunno
+                    await connessione()
 
-            const dati = await TABELLA_UTENTI.find({ token: tk }).toArray()
+                    const dati = await TABELLA_UTENTI.find({ email: dec.em }).toArray()
 
-            if(dati.length !== 0){
-                if(dati[0].token !== ""){
                     let classe = dati[0].classe
 
                     //Filtri
@@ -481,7 +394,7 @@ app.post(VALUTA_DOCENTE, async(req, res) => {
                     }
 
                     let filtro_alunno = {
-                        "token": tk
+                        "email": dec.em
                     }
 
                     //Strutture da impostare nel db
@@ -540,24 +453,16 @@ app.post(VALUTA_DOCENTE, async(req, res) => {
                     res.status(200).json({
                         messaggio: "Valutazione inviata!"
                     })
-                } else {
+
+                    //Chiudo la connesione al database
+                    await client.close()
+                } catch (e) {
                     res.json({
-                        messaggio: "Autenticazione fallita"
+                        messaggio: "Si è verificato un errore nel server"
                     })
                 }
-            } else {
-                res.json({
-                    messaggio: "Autenticazione fallita"
-                })
             }
-
-            //Chiudo la connesione al database
-            await client.close()
-        } catch (e) {
-            res.json({
-                messaggio: "Si è verificato un errore nel server"
-            })
-        }
+        })
     } else {
         res.json({
             messaggio: "Non puoi votare, le valutazioni sono terminate"
@@ -569,262 +474,284 @@ app.post(VALUTA_DOCENTE, async(req, res) => {
 app.post(ADMIN_CONSOLE, async(req, res) => {
     let tk = req.body.token
 
-    try{
-        await connessione()
-        const dati = await TABELLA_UTENTI.find({ token: tk }).toArray()
-
-        if(dati.length !== 0){
-            if(dati[0].token !== "" && dati[0].tipo === "A"){
-                res.json(
-                    [
-                        {
-                            button: "Carica Studenti",
-                            urlEndpoint:"carica_studenti"
-                        },
-                        {
-                            button: "Carica Docenti",
-                            urlEndpoint:"carica_docenti"
-                        },
-                        {
-                            button: "Start/Stop Valutazioni",
-                            urlEndpoint: "start_stop_valutazioni"
-                        },
-                        {
-                            status: valutazioni_avviate
-                        }
-                    ]
-                )
-            } else {
-                res.json({
-                    errore: true,
-                    messaggio: "Non hai il permesso per eseguire questo endpoint"
-                })
-            }
-        } else {
+    jwt.verify(tk, SECRET_OF_TOKEN, async(err, dec) => {
+        if (err) {
             res.json({
                 errore: true,
-                messaggio: "Non hai il permesso per eseguire questo endpoint"
+                messaggio: "Token non valido"
             })
-        }
+        } else {
+            try{
+                await connessione()
+                const dati = await TABELLA_UTENTI.find({ email: dec.em }).toArray()
 
-        //Chiudo la connesione al database
-        await client.close()
-    } catch (e) {
-        res.json({
-            errore: true,
-            messaggio: "Si è verificato un errore nel server."
-        })
-    }
+                if(dati[0].tipo === "A"){
+                    res.json(
+                        [
+                            {
+                                button: "Carica Studenti",
+                                urlEndpoint:"carica_studenti"
+                            },
+                            {
+                                button: "Carica Docenti",
+                                urlEndpoint:"carica_docenti"
+                            },
+                            {
+                                button: "Start/Stop Valutazioni",
+                                urlEndpoint: "start_stop_valutazioni"
+                            },
+                            {
+                                status: valutazioni_avviate
+                            }
+                        ]
+                    )
+                } else {
+                    res.json({
+                        errore: true,
+                        messaggio: "Non hai il permesso per eseguire questo endpoint"
+                    })
+                }
+
+                //Chiudo la connesione al database
+                await client.close()
+            } catch (e) {
+                res.json({
+                    errore: true,
+                    messaggio: "Si è verificato un errore nel server."
+                })
+            }
+        }
+    })
 })
 
 app.post(GET_DOCENTI, async(req, res) => {
     let tk = req.body.token
 
-    try {
-        await connessione()
-        const dati = await TABELLA_UTENTI.find({ token: tk }).toArray()
-
-        if(dati.length !== 0){
-            if(dati[0].token !== "" && dati[0].tipo === "A"){
-                const docenti = await TABELLA_UTENTI.find({ tipo: "D" }).toArray()
-                const risultato = []
-
-                docenti.forEach((docente) => {
-                    const { nome, cognome, email } = docente
-
-                    risultato.push({
-                        nome,
-                        cognome,
-                        email,
-                    })
-                })
-
-                res.json({
-                    docenti: risultato,
-                    messaggio: "Dati dei docenti ottenuti con successo!",
-                })
-            } else {
-                res.json({
-                    docenti: null,
-                    messaggio: "Non hai il permesso per eseguire questo endpoint"
-                })
-            }
-        } else {
+    jwt.verify(tk, SECRET_OF_TOKEN, async(err, dec) => {
+        if (err) {
             res.json({
                 docenti: null,
-                messaggio: "Non hai il permesso per eseguire questo endpoint"
+                messaggio: "Token non valido"
             })
-        }
+        } else {
+            try {
+                await connessione()
+                const dati = await TABELLA_UTENTI.find({ email: dec.em }).toArray()
 
-        //Chiudo la connesione al database
-        await client.close()
-    } catch (error) {
-        res.json({
-            docenti: null,
-            messaggio: "Si è verificato un errore durante il recupero dei dati dei docenti.",
-        })
-    }
+                if(dati[0].tipo === "A"){
+                    const docenti = await TABELLA_UTENTI.find({ tipo: "D" }).toArray()
+                    const risultato = []
+
+                    docenti.forEach((docente) => {
+                        const { nome, cognome, email } = docente
+
+                        risultato.push({
+                            nome,
+                            cognome,
+                            email,
+                        })
+                    })
+
+                    res.json({
+                        docenti: risultato,
+                        messaggio: "Dati dei docenti ottenuti con successo!",
+                    })
+                } else {
+                    res.json({
+                        docenti: null,
+                        messaggio: "Non hai il permesso per eseguire questo endpoint"
+                    })
+                }
+
+                //Chiudo la connesione al database
+                await client.close()
+            } catch (error) {
+                res.json({
+                    docenti: null,
+                    messaggio: "Si è verificato un errore durante il recupero dei dati dei docenti.",
+                })
+            }
+        }
+    })
 })
 
 //Middleware per caricare gli studenti da file system tramite un json
 app.post(CARICA_STUDENTI, async(req, res)  => {
     let tk = req.body.token
 
-    try{
-        await connessione()
-        const dati = await TABELLA_UTENTI.find({ token: tk }).toArray()
+    jwt.verify(tk, SECRET_OF_TOKEN, async(err, dec) => {
+        if (err) {
+            res.json({
+                domande: null,
+                messaggio: "Token non valido"
+            })
+        } else {
+            try{
+                await connessione()
+                const dati = await TABELLA_UTENTI.find({ email: dec.em }).toArray()
 
-        if(dati.length !== 0){
-            if(dati[0].token !== "" && dati[0].tipo === "A"){
-                // PERCORSO FILE
-                const PERCORSOFILE = './json/utenti.json'
+                if(dati[0].tipo === "A"){
+                    // PERCORSO FILE
+                    const PERCORSOFILE = './json/utenti.json'
 
-                fs.readFile(PERCORSOFILE, 'utf8', async (err, data) => {
-                    await connessione()
+                    fs.readFile(PERCORSOFILE, 'utf8', async (err, data) => {
+                        await connessione()
 
-                    if (err) {
-                        console.error('Errore nella lettura del file:', err)
-                        return
-                    }
+                        if (err) {
+                            console.error('Errore nella lettura del file:', err)
+                            return
+                        }
 
-                    let studenti = []
+                        let studenti = []
 
-                    try {
-                        // Converti il contenuto del file JSON in un oggetto JavaScript
-                        const json = JSON.parse(data);
-                        
-                        // Cicla sull'array di oggetti
-                        json.forEach(elemento => {
-                            // Se il tipo è 'S', inserisce l'elemento nel db
-                            if (elemento.tipo === 'S') {
-                                studenti.push(elemento)
-                            }
-                        })
+                        try {
+                            // Converti il contenuto del file JSON in un oggetto JavaScript
+                            const json = JSON.parse(data);
+                            
+                            // Cicla sull'array di oggetti
+                            json.forEach(elemento => {
+                                // Se il tipo è 'S', inserisce l'elemento nel db
+                                if (elemento.tipo === 'S') {
+                                    studenti.push(elemento)
+                                }
+                            })
 
-                        await TABELLA_UTENTI.insertMany(studenti)
-                    } catch (error) {
-                        console.error('Errore nella conversione del JSON:', error)
-                    }
-                })
+                            await TABELLA_UTENTI.insertMany(studenti)
+                        } catch (error) {
+                            console.error('Errore nella conversione del JSON:', error)
+                        }
+                    })
 
-                res.json({messaggio: "Studenti caricati con successo"})
-            } else {
+                    res.json({messaggio: "Studenti caricati con successo"})
+                } else {
+                    res.json({
+                        domande: null,
+                        messaggio: "Si è verificato un errore nel server."
+                    })
+                }
+                //Chiudo la connesione al database
+                await client.close()
+            } catch (e) {
                 res.json({
                     domande: null,
                     messaggio: "Si è verificato un errore nel server."
                 })
             }
         }
-
-        //Chiudo la connesione al database
-        await client.close()
-    } catch (e) {
-        res.json({
-            domande: null,
-            messaggio: "Si è verificato un errore nel server."
-        })
-    }
+    })
 })
 
 //Middleware per caricare i docenti da file system tramite un json
 app.post(CARICA_DOCENTI, async(req, res) => {
     let tk = req.body.token
 
-    try{
-        await connessione()
-        const dati = await TABELLA_UTENTI.find({ token: tk }).toArray()
+    jwt.verify(tk, SECRET_OF_TOKEN, async(err, dec) => {
+        if (err) {
+            res.json({
+                domande: null,
+                messaggio: "Token non valido"
+            })
+        } else {
+            try{
+                await connessione()
+                const dati = await TABELLA_UTENTI.find({ email: dec.em }).toArray()
 
-        if(dati.length !== 0){
-            if(dati[0].token !== "" && dati[0].tipo === "A"){
-                // PERCORSO FILE
-                const PERCORSOFILE = './json/utenti.json';
+                if(dati[0].tipo === "A"){
+                    // PERCORSO FILE
+                    const PERCORSOFILE = './json/utenti.json';
 
-                fs.readFile(PERCORSOFILE, 'utf8', async (err, data) => {
-                    await connessione()
-                    if (err) {
-                        console.error('Errore nella lettura del file:', err);
-                        return
-                    }
+                    fs.readFile(PERCORSOFILE, 'utf8', async (err, data) => {
+                        await connessione()
+                        if (err) {
+                            console.error('Errore nella lettura del file:', err);
+                            return
+                        }
 
-                    let docenti = []
+                        let docenti = []
 
-                    try {
-                        // Converti il contenuto del file JSON in un oggetto JavaScript
-                        const json = JSON.parse(data);
-                
-                        // Cicla sull'array di oggetti
-                        json.forEach(elemento => {
-                            // Se il tipo è 'D', inserisce l'elemento nel db
-                            if (elemento.tipo === 'D') {
-                                docenti.push(elemento)
-                            }
-                        })
-                        await TABELLA_UTENTI.insertMany(docenti)
-                    } catch (error) {
-                        console.error('Errore nella conversione del JSON:', error)
-                    }
-                })
+                        try {
+                            // Converti il contenuto del file JSON in un oggetto JavaScript
+                            const json = JSON.parse(data);
+                    
+                            // Cicla sull'array di oggetti
+                            json.forEach(elemento => {
+                                // Se il tipo è 'D', inserisce l'elemento nel db
+                                if (elemento.tipo === 'D') {
+                                    docenti.push(elemento)
+                                }
+                            })
+                            await TABELLA_UTENTI.insertMany(docenti)
+                        } catch (error) {
+                            console.error('Errore nella conversione del JSON:', error)
+                        }
+                    })
 
-                res.json({messaggio: "Docenti caricati con successo"})
-            } else {
+                    res.json({messaggio: "Docenti caricati con successo"})
+                } else {
+                    res.json({
+                        domande: null,
+                        messaggio: "Non sei autorizzato"
+                    })
+                }
+                //Chiudo la connesione al database
+                await client.close()
+            } catch (e) {
                 res.json({
                     domande: null,
-                    messaggio: "Non sei autorizzato"
+                    messaggio: "Si è verificato un errore nel server."
                 })
             }
         }
-
-        //Chiudo la connesione al database
-        await client.close()
-    } catch (e) {
-        res.json({
-            domande: null,
-            messaggio: "Si è verificato un errore nel server."
-        })
-    }
+    })
 })
 
 //Middleware per iniziare il periodo di valutazione
 app.post(START_STOP_VALUTAZIONI, async(req, res) => {
     let tk = req.body.token
 
-    try{
-        await connessione()
-        const dati = await TABELLA_UTENTI.find({ token: tk }).toArray()
+    jwt.verify(tk, SECRET_OF_TOKEN, async(err, dec) => {
+        if (err) {
+            res.json({
+                valuta: null,
+                messaggio: "Token non valido"
+            })
+        } else {
+            try{
+                await connessione()
+                const dati = await TABELLA_UTENTI.find({ email: dec.em }).toArray()
 
-        if(dati.length !== 0){
-            if(dati[0].token !== "" && dati[0].tipo === "A"){
-                if(valutazioni_avviate === false){
-                    valutazioni_avviate = true
+                if(dati[0].tipo === "A"){
+                    if(valutazioni_avviate === false){
+                        valutazioni_avviate = true
 
-                    res.json({
-                        valuta: valutazioni_avviate,
-                        messaggio: 'Valutazioni avviate!'
-                    })
+                        res.json({
+                            valuta: valutazioni_avviate,
+                            messaggio: 'Valutazioni avviate!'
+                        })
+                    } else {
+                        valutazioni_avviate = false
+
+                        res.json({
+                            valuta: valutazioni_avviate,
+                            messaggio: 'Valutazioni terminate!'
+                        })
+                    }
                 } else {
-                    valutazioni_avviate = false
-
                     res.json({
-                        valuta: valutazioni_avviate,
-                        messaggio: 'Valutazioni terminate!'
+                        valuta: null,
+                        messaggio: "Non sei autorizzato"
                     })
                 }
-            } else {
+                //Chiudo la connesione al database
+                await client.close()
+            } catch (e) {
                 res.json({
                     valuta: null,
-                    messaggio: "Non sei autorizzato"
+                    messaggio: "Si è verificato un errore nel server."
                 })
             }
         }
-
-        //Chiudo la connesione al database
-        await client.close()
-    } catch (e) {
-        res.json({
-            valuta: null,
-            messaggio: "Si è verificato un errore nel server."
-        })
-    }
+    })
 })
 
 //Middleware per ottienre tutte le domanda da fare al momento della valutazione del singolo docente
@@ -861,17 +788,22 @@ app.post(VIEW_DOCENTE, async(req, res) => {
     let voti_dom = []
 
     if(valutazioni_avviate === false){
-        try{
-            await connessione()
-            
-            domande = await TABELLA_DOMANDE.find().toArray()
-            const dati_docenti = await TABELLA_VOTI_DOCENTI.find({cognomedocente: cognome, nomedocente: nome}).toArray()
-            
-            if(dati_docenti.length !== 0){
-                const dati_utenti = await TABELLA_UTENTI.find({token: tk}).toArray()
+        jwt.verify(tk, SECRET_OF_TOKEN, async(err, dec) => {
+            if (err) {
+                res.json({
+                    media: null,
+                    messaggio: "Token non valido"
+                })
+            } else {
+                try{
+                    await connessione()
 
-                if(dati_utenti.length !== 0){
-                    if(dati_utenti[0].token !== ""){
+                    domande = await TABELLA_DOMANDE.find().toArray()
+                    const dati_docenti = await TABELLA_VOTI_DOCENTI.find({cognomedocente: cognome, nomedocente: nome}).toArray()
+                    
+                    if(dati_docenti.length !== 0){
+                        const dati_utenti = await TABELLA_UTENTI.find({email: dec.em}).toArray()
+            
                         if(dati_utenti[0].tipo === "A" || dati_utenti[0].tipo === "D"){
                             dati_docenti[0].valutazioni.map((elem)=>{
                                 voti_dom.push({id:elem.domanda, voto:elem.voto})
@@ -888,34 +820,23 @@ app.post(VIEW_DOCENTE, async(req, res) => {
                                 media: null,
                                 messaggio: "Non sei autorizzato ad accedere a questa risorsa!"
                             })
-                        }
+                        }  
                     } else {
                         res.json({
                             media: null,
-                            messaggio: "Non sei autorizzato ad accedere a questa risorsa!"
+                            messaggio: "Al momento questo docente è inesistente oppure non è stato votato."
                         })
                     }
-                } else {
+                    //Chiudo la connesione al database
+                    await client.close()
+                } catch(e){
                     res.json({
                         media: null,
-                        messaggio: "Non sei autorizzato ad accedere a questa risorsa!"
+                        messaggio: "Si è verificato un errore durante il calcolo della media"
                     })
                 }
-            } else {
-                res.json({
-                    media: null,
-                    messaggio: "Al momento questo docente è inesistente oppure non è stato votato."
-                })
             }
-
-            //Chiudo la connesione al database
-            await client.close()
-        } catch(e){
-            res.json({
-                media: null,
-                messaggio: "Si è verificato un errore durante il calcolo della media"
-            })
-        }
+        })
     } else {
         res.json({
             media: null,
@@ -935,103 +856,104 @@ app.post(SCARICA_PDF_VALUTAZIONI, async(req, res) => {
 	const filePath = `valutazioni_${nome}_${cognome}.pdf`
 
     if(valutazioni_avviate === false){
-        try{
-            await connessione()
-            const dati = await TABELLA_UTENTI.find({ token: tk }).toArray()
-            
-            if(dati.length !== 0){
-                if(dati[0].token !== "" && dati[0].tipo === "D" || dati[0].tipo === "A"){
-                    const imageWidth = 100
+        jwt.verify(tk, SECRET_OF_TOKEN, async(err, dec) => {
+            if (err) {
+                res.json({
+                    messaggio: "Token non valido"
+                });
+            } else {
+                try{
+                    await connessione()
+                    const dati = await TABELLA_UTENTI.find({ email: dec.em }).toArray()
 
-                    doc.image("./img/logoDenina.png", {
-                        align: 'right',
-                        valign: 'center',
-                        width: imageWidth
-                    })
-                    
-                    const textX = doc.page.width - imageWidth - 330
-                    const textY = doc.y
-                    
-                    doc
-                        .fontSize(13)
-                        .font('Times-Bold')
-                        .text('ISTITUTO ISTRUZIONE SUPERIORE“DENINA”SALUZZO\n', textX, textY, {
-                            align: 'center',
-                            valign: 'center'
-                        });
-                    
-                    doc
-                        .fontSize(12)
-                        .font('Times-Roman')
-                        .text(`Codice meccanografico: CNISO14001  TEL: 0175/43625\nCodice fiscale: 94033200042   email: CNIS014001@istruzione.it\n\n“C. Denina” Via della Chiesa, 21 -12037 Saluzzo (CN) \n “S. Pellico” Via della Croce, 54/A - 12037 Saluzzo (CN)\n“G. Rivoira” Via IV Novembre - 12039 Verzuolo (CN) \n`, textX, textY + 25, {
-                            align: 'center',
-                            valign: 'center'
-                        });
-                    doc
-                        .fontSize(20)
-                        .font('Times-Bold')
-                        .text(`Risultati delle valutazioni ottenute per il docente ${nome} ${cognome}:\n`, 50, textY + 150, {
-                            align: 'center',
-                            valign: 'center'
-                        });
+                    if(dati[0].tipo === "D" || dati[0].tipo === "A"){
+                        const imageWidth = 100
 
-                    doc.addPage()
-                    
-                    const X = 0; 
-                    const Y = doc.y; 
-
-                    valutazioni.map((elem, i)=>{
-                        doc
-                        .font('Times-Bold')
-                        .fontSize(12.1)
-                        .text(
-                            `${i+1}) ${elem.domanda}
-                            `,
-                            {
-                                align: 'left'
-                            }
-                        )
-                        doc
-                        .font('Times-Roman')
-                        .fontSize(12.1)
-                        .text(
-                            `Media dei voti ottenuti alla domanda n${i+1}°: ${elem.media}
-                            `,
-                            {
-                                align: 'left'
-                            }
-                        )
-                    })
-                    doc.end()
-
-                    const writeStream = fs.createWriteStream(filePath)
-                    doc.pipe(writeStream)
-
-                    writeStream.on('finish', () => {
-                        res.download(filePath, (err) => {
-                            if (err) {
-                                res.json({
-                                    messaggio: "Si è verificato un errore durante il download del PDF"
-                                });
-                            } else {
-                                fs.unlinkSync(filePath)
-                            }
+                        doc.image("./img/logoDenina.png", {
+                            align: 'right',
+                            valign: 'center',
+                            width: imageWidth
                         })
+                        
+                        const textX = doc.page.width - imageWidth - 330
+                        const textY = doc.y
+                        
+                        doc
+                            .fontSize(13)
+                            .font('Times-Bold')
+                            .text('ISTITUTO ISTRUZIONE SUPERIORE“DENINA”SALUZZO\n', textX, textY, {
+                                align: 'center',
+                                valign: 'center'
+                            });
+                        
+                        doc
+                            .fontSize(12)
+                            .font('Times-Roman')
+                            .text(`Codice meccanografico: CNISO14001  TEL: 0175/43625\nCodice fiscale: 94033200042   email: CNIS014001@istruzione.it\n\n“C. Denina” Via della Chiesa, 21 -12037 Saluzzo (CN) \n “S. Pellico” Via della Croce, 54/A - 12037 Saluzzo (CN)\n“G. Rivoira” Via IV Novembre - 12039 Verzuolo (CN) \n`, textX, textY + 25, {
+                                align: 'center',
+                                valign: 'center'
+                            });
+                        doc
+                            .fontSize(20)
+                            .font('Times-Bold')
+                            .text(`Risultati delle valutazioni ottenute per il docente ${nome} ${cognome}:\n`, 50, textY + 150, {
+                                align: 'center',
+                                valign: 'center'
+                            });
+
+                        doc.addPage()
+                        
+                        const X = 0; 
+                        const Y = doc.y; 
+
+                        valutazioni.map((elem, i)=>{
+                            doc
+                            .font('Times-Bold')
+                            .fontSize(12.1)
+                            .text(
+                                `${i+1}) ${elem.domanda}
+                                `,
+                                {
+                                    align: 'left'
+                                }
+                            )
+                            doc
+                            .font('Times-Roman')
+                            .fontSize(12.1)
+                            .text(
+                                `Media dei voti ottenuti alla domanda n${i+1}°: ${elem.media}
+                                `,
+                                {
+                                    align: 'left'
+                                }
+                            )
+                        })
+                        doc.end()
+
+                        const writeStream = fs.createWriteStream(filePath)
+                        doc.pipe(writeStream)
+
+                        writeStream.on('finish', () => {
+                            res.download(filePath, (err) => {
+                                if (err) {
+                                    res.json({
+                                        messaggio: "Si è verificato un errore durante il download del PDF"
+                                    });
+                                } else {
+                                    fs.unlinkSync(filePath)
+                                }
+                            })
+                        })
+                    }
+                    //Chiudo la connesione al database
+                    await client.close()
+                } catch(e){
+                    res.json({
+                        messaggio: "Si è verificato un errore durante la creazione del pdf"
                     })
                 }
-            } else {
-                res.json({
-                    messaggio: "non sei autorizzato"
-                })
             }
-
-            //Chiudo la connesione al database
-            await client.close()
-        } catch(e){
-            res.json({
-                messaggio: "Si è verificato un errore durante la creazione del pdf"
-            })
-        }
+        })
     } else {
         res.json({
             messaggio: "Al momento delle valutazioni non è possibile scaricare il pdf delle proprie valutazioni."

@@ -1,6 +1,5 @@
 //! INIZIO BLOCCO VARIABLI E COSTANTI
 const LINK_SERVER = 'http://localhost:3001/'
-const API_LOGOUT = LINK_SERVER + 'logout'
 const API_TOKEN_VALIDO = LINK_SERVER + 'token_valido'
 const API_ADMIN_CONSOLE = LINK_SERVER + 'admin_console'
 const API_DOCENTI_CLASSE = LINK_SERVER + 'get_docenti_classe'
@@ -53,22 +52,10 @@ const controlla_se_loggato =()=>{
 }
 
 const logout =()=>{
-    let token = localStorage.getItem('token')
+    localStorage.setItem('token', 'null')
+    localStorage.setItem('loggato', 'false')
 
-    fetch(API_LOGOUT, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({token})
-    })
-    .then(testo=>testo.json())
-    .then((data)=>{
-        localStorage.setItem('token', 'null')
-        localStorage.setItem('loggato', 'false')
-
-        window.location.href = './index.html'
-    })   
+    window.location.href = './index.html'
 }
 
 const controlla_ruolo_utente_e_carica_interfaccia =()=>{
